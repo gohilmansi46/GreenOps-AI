@@ -1,15 +1,12 @@
-import { useState } from "react";
+import { useTheme } from "./context/ThemeContext";
 import AppRoutes from "./routes/AppRoutes";
 
 function App() {
-  const [darkMode, setDarkMode] = useState(true);
+  const { darkMode } = useTheme();
 
   return (
     <div className={darkMode ? "dark" : ""}>
-      <AppRoutes
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-      />
+      <AppRoutes />
     </div>
   );
 }

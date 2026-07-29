@@ -3,6 +3,7 @@ import { signOutUser } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import AIChatbot from "../components/AIChatbot";
 import MainLayout from "../layouts/MainLayout";
+import { useTheme } from "../context/ThemeContext";
 
 import {
   collection,
@@ -110,7 +111,8 @@ const CustomTooltip = ({ active, payload, label }) => {
     </div>
   );
 };
-function Dashboard({ darkMode, setDarkMode }) {
+function Dashboard() {
+  const { darkMode, setDarkMode } = useTheme();
   const navigate = useNavigate();
   const [latestData, setLatestData] = useState(null);
   const [chartData, setChartData] = useState([]);

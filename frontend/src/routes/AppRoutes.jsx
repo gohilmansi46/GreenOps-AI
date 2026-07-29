@@ -6,7 +6,7 @@ import Dashboard from "../pages/Dashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Environmental from "../pages/Environmental";
 
-function AppRoutes({ darkMode, setDarkMode }) {
+function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
@@ -20,22 +20,19 @@ function AppRoutes({ darkMode, setDarkMode }) {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard
-                darkMode={darkMode}
-                setDarkMode={setDarkMode}
-              />
+              <Dashboard />
             </ProtectedRoute>
           }
         />
 
         <Route
-          path="/environmental"
-          element={
-            <ProtectedRoute>
-              <Environmental />
-            </ProtectedRoute>
-          }
-        />
+  path="/environmental"
+  element={
+    <ProtectedRoute>
+      <Environmental />
+    </ProtectedRoute>
+  }
+/>
       </Routes>
     </BrowserRouter>
   );

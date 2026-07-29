@@ -13,6 +13,7 @@ import { db } from "../config/firebase";
 import MainLayout from "../layouts/MainLayout";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useTheme } from "../context/ThemeContext";
 
 import {
   Leaf,
@@ -28,6 +29,7 @@ import {
 } from "lucide-react";
 
 function Environmental() {
+  const { darkMode } = useTheme();
   const [carbon, setCarbon] = useState("");
   const [energy, setEnergy] = useState("");
   const [water, setWater] = useState("");
@@ -296,27 +298,45 @@ const handleExportPDF = () => {
 
 return (
 <MainLayout>
-<div className="bg-gray-100 min-h-screen">
+<div
+  className={`min-h-screen ${
+    darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
+  }`}
+>
 
 {/* Main Content */}
 <div>
 
 {/*  HEADER  */}
 
-<div className="fixed top-0 left-64 right-0 bg-white border-b border-gray-200 z-40">
+<div
+  className={`fixed top-0 left-64 right-0 border-b z-40 ${
+    darkMode
+      ? "bg-gray-800 border-gray-700"
+      : "bg-white border-gray-200"
+  }`}
+>
 
   <div className="px-10 py-6 flex justify-between items-center">
 
     <div>
 
-      <h1 className="text-4xl font-bold text-gray-900">
-        Environmental Management
-      </h1>
+      <h1
+  className={`text-4xl font-bold ${
+    darkMode ? "text-white" : "text-gray-900"
+  }`}
+>
+  Environmental Management
+</h1>
 
-      <p className="text-gray-500 mt-2 text-lg">
-        Monitor and manage your organization's environmental sustainability
-        metrics.
-      </p>
+<p
+  className={`mt-2 text-lg ${
+    darkMode ? "text-gray-300" : "text-gray-500"
+  }`}
+>
+  Monitor and manage your organization's environmental sustainability
+  metrics.
+</p>
 
     </div>
 
@@ -328,9 +348,13 @@ return (
     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
     <span className="relative inline-flex rounded-full h-3 w-3 bg-green-600"></span>
   </span>
-  <span className="font-semibold">
-    Live System
-  </span>
+  <span
+  className={`font-semibold ${
+    darkMode ? "text-green-900" : "text-green-700"
+  }`}
+>
+  Live System
+</span>
 
 </div>
 
@@ -348,23 +372,33 @@ return (
 
   {/* Carbon */}
 
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+  <div className={`rounded-2xl shadow-sm border p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+  darkMode
+    ? "bg-gray-800 border-gray-700"
+    : "bg-white border-gray-200"
+}`}>
 
     <div className="flex justify-between items-center">
 
       <div>
 
-        <p className="text-gray-500 text-sm">
+        <p className={`text-sm ${
+  darkMode ? "text-gray-400" : "text-gray-500"
+}`}>
           Total Carbon
         </p>
 
-        <h2 className="text-3xl font-bold mt-2">
+        <h2 className={`text-3xl font-bold mt-2 ${
+  darkMode ? "text-white" : "text-gray-900"
+}`}>
           {totalCarbon}
         </h2>
 
   <div className="flex items-center justify-between mt-4">
 
-  <span className="text-sm text-gray-500">
+  <span className={`text-sm ${
+  darkMode ? "text-gray-400" : "text-gray-500"
+}`}>
     tCO₂
   </span>
 
@@ -390,23 +424,33 @@ return (
 
   {/* Energy */}
 
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+  <div className={`rounded-2xl shadow-sm border p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+  darkMode
+    ? "bg-gray-800 border-gray-700"
+    : "bg-white border-gray-200"
+}`}>
 
     <div className="flex justify-between items-center">
 
       <div>
 
-        <p className="text-gray-500 text-sm">
+        <p className={`text-sm ${
+  darkMode ? "text-gray-400" : "text-gray-500"
+}`}>
           Energy Usage
         </p>
 
-        <h2 className="text-3xl font-bold mt-2">
+        <h2 className={`text-3xl font-bold mt-2 ${
+  darkMode ? "text-white" : "text-gray-900"
+}`}>
           {totalEnergy}
         </h2>
 
         <div className="flex items-center gap-2 mt-2">
 
-  <span className="text-sm text-gray-500">
+  <span className={`text-sm ${
+  darkMode ? "text-gray-400" : "text-gray-500"
+}`}>
     kWh
   </span>
 
@@ -430,23 +474,33 @@ return (
 
   {/* Water */}
 
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+  <div className={`rounded-2xl shadow-sm border p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+  darkMode
+    ? "bg-gray-800 border-gray-700"
+    : "bg-white border-gray-200"
+}`}>
 
     <div className="flex justify-between items-center">
 
       <div>
 
-        <p className="text-gray-500 text-sm">
+        <p className={`text-sm ${
+  darkMode ? "text-gray-400" : "text-gray-500"
+}`}>
           Water Usage
         </p>
 
-        <h2 className="text-3xl font-bold mt-2">
+        <h2 className={`text-3xl font-bold mt-2 ${
+  darkMode ? "text-white" : "text-gray-900"
+}`}>
           {totalWater}
         </h2>
 
         <div className="flex items-center gap-2 mt-2">
 
-  <span className="text-sm text-gray-500">
+  <span className={`text-sm ${
+  darkMode ? "text-gray-400" : "text-gray-500"
+}`}>
     Litres
   </span>
 
@@ -470,23 +524,33 @@ return (
 
   {/* Records */}
 
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+  <div className={`rounded-2xl shadow-sm border p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+  darkMode
+    ? "bg-gray-800 border-gray-700"
+    : "bg-white border-gray-200"
+}`}>
 
     <div className="flex justify-between items-center">
 
       <div>
 
-        <p className="text-gray-500 text-sm">
+        <p className={`text-sm ${
+  darkMode ? "text-gray-400" : "text-gray-500"
+}`}>
           Total Records
         </p>
 
-        <h2 className="text-3xl font-bold mt-2">
+        <h2 className={`text-3xl font-bold mt-2 ${
+  darkMode ? "text-white" : "text-gray-900"
+}`}>
           {records.length}
         </h2>
 
         <div className="flex items-center gap-2 mt-2">
 
-  <span className="text-sm text-gray-500">
+  <span className={`text-sm ${
+  darkMode ? "text-gray-400" : "text-gray-500"
+}`}>
     Entries
   </span>
 
@@ -509,22 +573,48 @@ return (
   </div>
 
 </div>
-    <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 w-full">
+    <div
+  className={`p-8 rounded-2xl shadow-lg border w-full ${
+    darkMode
+      ? "bg-gray-800 border-gray-700"
+      : "bg-white border-gray-200"
+  }`}
+>
       {/* ================= DATA ENTRY CARD ================= */}
 
-<div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+<div
+  className={`rounded-2xl border shadow-sm overflow-hidden ${
+    darkMode
+      ? "bg-gray-800 border-gray-700"
+      : "bg-white border-gray-200"
+  }`}
+>
 
   {/* Card Header */}
 
-  <div className="px-8 py-5 border-b bg-gray-50">
+  <div
+  className={`px-8 py-5 border-b ${
+    darkMode
+      ? "bg-gray-900 border-gray-700"
+      : "bg-gray-50 border-gray-200"
+  }`}
+>
 
-    <h2 className="text-2xl font-bold text-gray-800">
-      Add Environmental Record
-    </h2>
+    <h2
+  className={`text-2xl font-bold ${
+    darkMode ? "text-white" : "text-gray-800"
+  }`}
+>
+  Add Environmental Record
+</h2>
 
-    <p className="text-gray-500 mt-1">
-      Enter the latest environmental sustainability metrics.
-    </p>
+<p
+  className={`mt-1 ${
+    darkMode ? "text-gray-300" : "text-gray-500"
+  }`}
+>
+  Enter the latest environmental sustainability metrics.
+</p>
 
   </div>
 
@@ -538,7 +628,11 @@ return (
 
       <div>
 
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label
+  className={`block text-sm font-semibold mb-2 ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
           Carbon Emissions (tCO₂)
         </label>
 
@@ -547,7 +641,11 @@ return (
           value={carbon}
           onChange={(e) => setCarbon(e.target.value)}
           placeholder="e.g. 125"
-          className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
+          className={`w-full rounded-xl border px-4 py-3 outline-none transition ${
+  darkMode
+    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+    : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+} focus:ring-2 focus:ring-green-500 focus:border-green-500`}
           required
         />
 
@@ -566,7 +664,11 @@ return (
           value={energy}
           onChange={(e) => setEnergy(e.target.value)}
           placeholder="e.g. 540"
-          className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none transition"
+          className={`w-full rounded-xl border px-4 py-3 outline-none transition ${
+  darkMode
+    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+    : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+} focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500`}
           required
         />
 
@@ -587,7 +689,11 @@ return (
         value={water}
         onChange={(e) => setWater(e.target.value)}
         placeholder="e.g. 6500"
-        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+        className={`w-full rounded-xl border px-4 py-3 outline-none transition ${
+  darkMode
+    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+    : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+} focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
         required
       />
 
@@ -595,7 +701,11 @@ return (
 
     {/* Button */}
 
-    <div className="flex justify-end border-t border-gray-200 pt-6">
+    <div
+  className={`flex justify-end border-t pt-6 ${
+    darkMode ? "border-gray-700" : "border-gray-200"
+  }`}
+>
 
       <button
         type="submit"
@@ -619,13 +729,21 @@ return (
 
   <div>
 
-    <h2 className="text-3xl font-bold text-gray-800">
-      Environmental Records
-    </h2>
+    <h2
+  className={`text-3xl font-bold ${
+    darkMode ? "text-white" : "text-gray-800"
+  }`}
+>
+  Environmental Records
+</h2>
 
-    <p className="text-gray-500 mt-1">
-      Search, edit and manage all environmental submissions.
-    </p>
+<p
+  className={`mt-1 ${
+    darkMode ? "text-gray-300" : "text-gray-500"
+  }`}
+>
+  Search, edit and manage all environmental submissions.
+</p>
 
   </div>
 
@@ -642,13 +760,11 @@ return (
       className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
     />
 
-    <input
-      type="text"
-      placeholder="Search records..."
-      value={search}
-      onChange={(e) => setSearch(e.target.value)}
-      className="w-full rounded-xl border border-gray-300 py-3 pl-11 pr-4 focus:ring-2 focus:ring-green-500 outline-none"
-    />
+    className={`w-full rounded-xl border py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-green-500 ${
+  darkMode
+    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+    : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+}`}
 
   </div>
 
@@ -674,30 +790,64 @@ return (
 </div>
 
 
-<div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+<div
+  className={`rounded-2xl shadow-sm border overflow-hidden ${
+    darkMode
+      ? "bg-gray-800 border-gray-700"
+      : "bg-white border-gray-200"
+  }`}
+>
   <table className="w-full">
-<thead className="bg-gray-100">
+<thead
+  className={`${
+    darkMode ? "bg-gray-900" : "bg-gray-100"
+  }`}
+>
     <tr>
-      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+      <th
+  className={`px-6 py-4 text-left text-sm font-semibold ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
   Status
 </th>
-    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+    <th
+  className={`px-6 py-4 text-left text-sm font-semibold ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
   Carbon (tCO₂)
 </th>
 
-<th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+<th
+  className={`px-6 py-4 text-left text-sm font-semibold ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
   Energy (kWh)
 </th>
 
-<th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+<th
+  className={`px-6 py-4 text-left text-sm font-semibold ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
   Water (L)
 </th>
 
-<th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+<th
+  className={`px-6 py-4 text-left text-sm font-semibold ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
   Date
 </th>
 
-<th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">
+<th
+  className={`px-6 py-4 text-center text-sm font-semibold ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
   Actions
 </th>
     </tr>
@@ -708,7 +858,12 @@ return (
     filteredRecords.map((record) => (
         <tr
   key={record.id}
-  className="border-b border-gray-100 hover:bg-green-50 transition-all duration-200">
+  className={`border-b transition-all duration-200 ${
+    darkMode
+      ? "border-gray-700 hover:bg-gray-700"
+      : "border-gray-100 hover:bg-green-50"
+  }`}
+>
   <td className="px-6 py-4 align-middle">
   <div className="flex items-center h-full">
     <span
@@ -718,21 +873,37 @@ return (
     </span>
   </div>
 </td>
-  <td className="px-6 py-4 text-gray-700">
+  <td
+  className={`px-6 py-4 ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
   {record.carbon}
 </td>
 
-  <td className="px-6 py-4 text-gray-700">
-    {record.energy}
+  <td
+  className={`px-6 py-4 ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
+  {record.energy}
+</td>
+
+ <td
+  className={`px-6 py-4 ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
+  {record.water}
   </td>
 
-  <td className="px-6 py-4 text-gray-700">
-    {record.water}
-  </td>
-
-  <td className="px-6 py-4 text-gray-700">
-    {record.createdAt?.toDate().toLocaleDateString()}
-  </td>
+ <td
+  className={`px-6 py-4 ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
+  {record.createdAt?.toDate().toLocaleDateString()}
+</td>
 
   <td className="px-6 py-4">
 
@@ -762,15 +933,28 @@ return (
     <tr>
       <td colSpan="5" className="py-16 text-center">
         <div className="flex flex-col items-center">
-          <Database size={50} className="text-gray-300 mb-4" />
+          <Database
+  size={50}
+  className={`mb-4 ${
+    darkMode ? "text-gray-500" : "text-gray-300"
+  }`}
+/>
 
-          <h3 className="text-xl font-semibold text-gray-700">
-            No Records Found
-          </h3>
+          <h3
+  className={`text-xl font-semibold ${
+    darkMode ? "text-white" : "text-gray-700"
+  }`}
+>
+  No Records Found
+</h3>
 
-          <p className="text-gray-500 mt-2">
-            Try adding a new record or change your search.
-          </p>
+<p
+  className={`mt-2 ${
+    darkMode ? "text-gray-300" : "text-gray-500"
+  }`}
+>
+  Try adding a new record or change your search.
+</p>
         </div>
       </td>
     </tr>
