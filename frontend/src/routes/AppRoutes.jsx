@@ -5,6 +5,9 @@ import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Environmental from "../pages/Environmental";
+import Social from "../pages/Social";
+import Governance from "../pages/Governance";
+import Reports from "../pages/Reports";
 
 function AppRoutes() {
   return (
@@ -33,6 +36,34 @@ function AppRoutes() {
     </ProtectedRoute>
   }
 />
+
+ <Route
+  path="/social"
+  element={
+    <ProtectedRoute>
+      <Social />
+    </ProtectedRoute>
+  }
+/>
+
+ <Route
+  path="/governance"
+  element={
+    <ProtectedRoute>
+      <Governance />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/reports"
+  element={
+    <ProtectedRoute>
+      <Reports />
+    </ProtectedRoute>
+  }
+/>
+
       </Routes>
     </BrowserRouter>
   );

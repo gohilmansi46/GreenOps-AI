@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { signOutUser } from "../services/authService";
 import { useNavigate } from "react-router-dom";
-import AIChatbot from "../components/AIChatbot";
 import MainLayout from "../layouts/MainLayout";
 import { useTheme } from "../context/ThemeContext";
 
@@ -229,7 +228,7 @@ const getCarbonStatus = () => {
 
 const getEnergyStatus = () => {
   if (!latestData) return "";
-
+  
   if (latestData.energy <= 500) return "🟢 Efficient";
   if (latestData.energy <= 1000) return "🟡 Moderate";
   return "🔴 High";
@@ -877,7 +876,7 @@ className={`relative p-3 rounded-full transition-all duration-300 ${
     darkMode ? "bg-gray-800" : "bg-white"
   }`}
 >
-              <div className="flex justify-between items-center mb-5">
+    <div className="flex justify-between items-center mb-5">
 
   <div>
 
@@ -1333,12 +1332,7 @@ className={`relative p-3 rounded-full transition-all duration-300 ${
 
 </div>
 
-   <AIChatbot
-  latestData={latestData}
-  esgScore={calculateESGScore()}
-  darkMode={darkMode}
-/>
-        </div>
+ </div>
           </div>
 
   </MainLayout>

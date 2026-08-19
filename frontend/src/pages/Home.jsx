@@ -1,5 +1,10 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import dashboardPreview from "../assets/dashboard-preview.png";
+import LoginForm from "../components/LoginForm";
+import RegisterForm from "../components/RegisterForm";
+import { X } from "lucide-react";
+
 import {
   FaLeaf,
   FaUsers,
@@ -10,9 +15,39 @@ import {
   FaFileAlt,
   FaPlusCircle,
   FaSeedling,
+  FaTimes,
 } from "react-icons/fa";
 
 function Home() {
+  const [authMode, setAuthMode] = useState(null);
+  // null | "login" | "register"
+  useEffect(() => {
+  const handleEsc = (e) => {
+    if (e.key === "Escape") {
+      setAuthMode(null);
+    }
+  };
+
+  window.addEventListener("keydown", handleEsc);
+
+  return () => {
+    window.removeEventListener("keydown", handleEsc);
+  };
+}, []);
+
+useEffect(() => {
+  if (authMode) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "auto";
+  }
+
+  return () => {
+    document.body.style.overflow = "auto";
+  };
+}, [authMode]);
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100">
 
@@ -40,18 +75,20 @@ function Home() {
         </p>
 
         <div className="flex gap-5 mt-10">
-          <Link
-            to="/register"
-          className="bg-green-600 hover:bg-green-700 hover:scale-105 text-white px-8 py-4 rounded-xl shadow-xl transition-all duration-300 font-semibold"          >
-            Get Started
-          </Link>
+  <button
+    onClick={() => setAuthMode("register")}
+    className="bg-green-600 hover:bg-green-700 hover:scale-105 text-white px-8 py-4 rounded-xl shadow-xl transition-all duration-300 font-semibold"
+  >
+    Get Started
+  </button>
 
-          <Link
-            to="/login"
-          className="border-2 border-green-600 text-green-700 hover:bg-green-50 hover:scale-105 px-8 py-4 rounded-xl shadow-md transition-all duration-300 font-semibold"          >
-            Login
-          </Link>
-        </div>
+  <button
+    onClick={() => setAuthMode("login")}
+    className="border-2 border-green-600 text-green-700 hover:bg-green-50 hover:scale-105 px-8 py-4 rounded-xl shadow-md transition-all duration-300 font-semibold"
+  >
+    Login
+  </button>
+</div>
 
       </section>
       {/* ================= DASHBOARD PREVIEW ================= */}
@@ -513,6 +550,64 @@ function Home() {
   </div>
 
 </footer>
+
+{/* Authentication Modal */}
+{authMode && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+    onClick={() => setAuthMode(null)}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="relative bg-white rounded-3xl shadow-2xl w-[92%] sm:w-[450px] p-8 animate-[modalOpen_0.35s_ease] origin-center"
+    >
+
+{/* Close Button */}
+    <button
+  onClick={() => setAuthMode(null)}
+  className="absolute top-5 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-500 transition-all duration-300 hover:bg-red-200 hover:rotate-90"
+>
+  <X size={20} strokeWidth={2.5} />
+</button>
+
+{/* Dynamic Form */}
+      <div
+  key={authMode}
+  className="animate-[fadeIn_0.35s_ease]"
+>
+  {authMode === "login" ? (
+    <>
+      <LoginForm />
+
+      <p className="text-center mt-6 text-gray-600">
+        Don't have an account?{" "}
+        <button
+          onClick={() => setAuthMode("register")}
+          className="text-green-600 font-semibold hover:underline transition"
+        >
+          Sign Up
+        </button>
+      </p>
+    </>
+  ) : (
+    <>
+      <RegisterForm />
+
+      <p className="text-center mt-6 text-gray-600">
+        Already have an account?{" "}
+        <button
+          onClick={() => setAuthMode("login")}
+          className="text-green-600 font-semibold hover:underline transition"
+        >
+          Login
+        </button>
+      </p>
+    </>
+  )}
+</div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

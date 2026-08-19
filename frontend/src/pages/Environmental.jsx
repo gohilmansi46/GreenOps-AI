@@ -14,6 +14,7 @@ import MainLayout from "../layouts/MainLayout";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useTheme } from "../context/ThemeContext";
+import toast from "react-hot-toast";
 
 import {
   Leaf,
@@ -73,21 +74,28 @@ const totalWater = records.reduce(
 const filteredRecords = records.filter((record) =>
   Object.values(record).join(" ").toLowerCase().includes(search.toLowerCase())
 );
-  const handleDelete = async (id) => {
-  const confirmDelete = window.confirm(
-    "Are you sure you want to delete this record?"
-    );
-if (!confirmDelete) return;
-try {
-    await deleteDoc(doc(db, "environmentalData", id));
-fetchRecords();
 
-  alert("Record deleted successfully!");
+const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [recordToDelete, setRecordToDelete] = useState(null);
+ const handleDelete = async (id) => {
+  try {
+    await deleteDoc(doc(db, "environmentalData", id));
+
+    fetchRecords();
+
+    setShowDeleteModal(false);
+    setRecordToDelete(null);
+
+    toast.success("Record deleted successfully!");
   } catch (error) {
     console.error(error);
-    alert("Failed to delete record.");
+
+    toast.error("Failed to delete record.");
+
+    setShowDeleteModal(false);
+    setRecordToDelete(null);
   }
-  };
+};
   
   const handleEdit = (record) => {
   setCarbon(record.carbon);
@@ -128,15 +136,15 @@ setEnergy("");
 setWater("");
 setEditId(null);
 
-alert(
-  editId
-    ? "Record updated successfully!"
-    : "Environmental data saved successfully!"
-);
+if (editId) {
+  toast.success("Record updated successfully!");
+} else {
+  toast.success("Environmental data saved successfully!");
+}
 
 } catch (error) {
   console.error(error);
-  alert("Failed to save data.");
+  toast.error("Failed to save data.");
 }
 };
 const getStatus = (record) => {
@@ -655,7 +663,11 @@ return (
 
       <div>
 
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label
+         className={`block text-sm font-semibold mb-2 ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
           Energy Usage (kWh)
         </label>
 
@@ -680,7 +692,11 @@ return (
 
     <div>
 
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
+      <label  
+       className={`block text-sm font-semibold mb-2 ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
         Water Consumption (Litres)
       </label>
 
@@ -751,22 +767,28 @@ return (
 
   <div className="flex flex-col sm:flex-row items-center gap-4">
 
-  {/* Search */}
+{/* Search */}
 
-  <div className="relative w-full sm:w-80">
+<div className="relative w-full sm:w-80">
 
-    <Search
-      size={18}
-      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-    />
+  <Search
+    size={18}
+    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+  />
 
+  <input
+    type="text"
+    placeholder="Search records..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
     className={`w-full rounded-xl border py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-green-500 ${
-  darkMode
-    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-    : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
-}`}
+      darkMode
+        ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+        : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+    }`}
+  />
 
-  </div>
+</div>
 
   {/* Export Button */}
 
@@ -918,7 +940,10 @@ return (
   </button>
 
   <button
-    onClick={() => handleDelete(record.id)}
+    onClick={() => {
+  setRecordToDelete(record.id);
+  setShowDeleteModal(true);
+}}
     className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition"
   >
     <Trash2 size={16} />
@@ -966,6 +991,58 @@ return (
         </div>
       </div>
     </div>
+    {showDeleteModal && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+
+    <div className="bg-white rounded-2xl shadow-2xl w-[420px] p-8">
+
+      {/* Icon */}
+      <div className="flex justify-center">
+        <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+          <Trash2 className="text-red-600" size={30} />
+        </div>
+      </div>
+
+      {/* Title */}
+      <h2 className="text-2xl font-bold text-center mt-5">
+        Delete Record?
+      </h2>
+
+      {/* Message */}
+      <p className="text-gray-500 text-center mt-3">
+        Are you sure you want to delete this environmental record?
+      </p>
+
+      <p className="text-red-500 text-center text-sm mt-2">
+        This action cannot be undone.
+      </p>
+
+      {/* Buttons */}
+      <div className="flex justify-center gap-4 mt-8">
+
+        <button
+          onClick={() => {
+            setShowDeleteModal(false);
+            setRecordToDelete(null);
+          }}
+          className="px-6 py-3 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={() => handleDelete(recordToDelete)}
+          className="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white transition"
+        >
+          Delete Record
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+)}
 </MainLayout>
 );
 }

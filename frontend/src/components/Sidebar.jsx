@@ -43,31 +43,49 @@ function Sidebar() {
           </li>
 
           <li>
-            <Link
-              to="#"
-              className="block p-3 rounded-lg hover:bg-green-700 transition"
+            <NavLink
+              to="/social"
+              className={({ isActive }) =>
+                `block p-3 rounded-lg transition-all duration-300 ${
+                  isActive
+                    ? "bg-green-700 text-white font-semibold"
+                    : "hover:bg-green-700"
+                }`
+              }
             >
               Social
-            </Link>
+            </NavLink>
           </li>
 
-          <li>
-            <Link
-              to="#"
-              className="block p-3 rounded-lg hover:bg-green-700 transition"
-            >
-              Governance
-            </Link>
-          </li>
+         <li>
+          <NavLink
+            to="/governance"
+            className={({ isActive }) =>
+              `block p-3 rounded-lg transition duration-300 ${
+                isActive
+                  ? "bg-green-700 text-white font-semibold"
+                  : "hover:bg-green-700"
+              }`
+            }
+          >
+            Governance
+          </NavLink>
+         </li>
 
-          <li>
-            <Link
-              to="#"
-              className="block p-3 rounded-lg hover:bg-green-700 transition"
-            >
-              Reports
-            </Link>
-          </li>
+        <li>
+          <NavLink
+            to="/reports"
+            className={({ isActive }) =>
+              `block p-3 rounded-lg transition ${
+                isActive
+                  ? "bg-green-700 text-white"
+                  : "hover:bg-green-700 hover:text-white"
+              }`
+            }
+          >
+            Reports
+          </NavLink>
+        </li>
 
         </ul>
 
