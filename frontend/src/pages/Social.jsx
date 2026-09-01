@@ -113,7 +113,7 @@ const safetyIncidentsValue =
 const csrActivitiesValue =
   latestRecord?.csrActivities || 0;
 
-  const malePercentage =
+const malePercentage =
   latestRecord?.totalEmployees
     ? Math.round(
         (latestRecord.maleEmployees /
@@ -132,10 +132,13 @@ const femalePercentage =
     : 0;
 
 const otherPercentage =
-  Math.max(
-    0,
-    100 - malePercentage - femalePercentage
-  );
+  latestRecord?.totalEmployees
+    ? Math.max(
+        0,
+        100 - malePercentage - femalePercentage
+      )
+    : 0;
+
 const employeesTrainedValue =
   latestRecord?.employeesTrained || 0;
 
@@ -153,35 +156,44 @@ const largestWorkforcePercentage = Math.max(
   otherPercentage
 );
 
-const diversityScore = Math.max(
-  0,
-  Math.min(
-    25,
-    Math.round(
-      ((1 - largestWorkforcePercentage / 100) / (2 / 3)) * 25
-    )
-  )
-);
+const diversityScore =
+  latestRecord?.totalEmployees > 0
+    ? Math.max(
+        0,
+        Math.min(
+          25,
+          Math.round(
+            ((1 - largestWorkforcePercentage / 100) / (2 / 3)) * 25
+          )
+        )
+      )
+    : 0;
 
 const trainingScore =
-  Math.min(
-    25,
-    Math.round(
-      (averageTrainingHours / 5) * 25
-    )
-  );
+  latestRecord
+    ? Math.min(
+        25,
+        Math.round(
+          (averageTrainingHours / 5) * 25
+        )
+      )
+    : 0;
 
 const safetyScore =
-  Math.max(
-    0,
-    25 - safetyIncidentsValue * 5
-  );
+  latestRecord
+    ? Math.max(
+        0,
+        25 - safetyIncidentsValue * 5
+      )
+    : 0;
 
 const csrScore =
-  Math.min(
-    25,
-    csrActivitiesValue * 2
-  );
+  latestRecord
+    ? Math.min(
+        25,
+        csrActivitiesValue * 2
+      )
+    : 0;
 
 const socialScore =
   diversityScore +
@@ -461,42 +473,53 @@ useEffect(() => {
 
       <div className="flex-1 ml-64">
 
-        {/* ================= HEADER ================= */}
+     {/* HEADER */}
 
-        <div className="fixed top-0 left-64 right-0 bg-white border-b border-gray-200 px-10 py-6 z-40">
+<div className="fixed top-0 left-64 right-0 bg-white border-b border-gray-200 z-40">
 
-          <div className="flex justify-between items-center">
+  <div className="px-10 py-6 flex justify-between items-center">
 
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900">
-                Social Management
-              </h1>
+    <div>
 
-              <p className="text-gray-500 mt-2 text-lg">
-                Manage workforce, training, safety and community impact.
-              </p>
-            </div>
+      <h1 className="text-4xl font-bold text-gray-900">
+        Social Management
+      </h1>
 
-            {/* Live Status */}
+      <p className="mt-2 text-lg text-gray-500">
+        Manage workforce, training, safety and community impact.
+      </p>
 
-            <div className="flex items-center gap-2 bg-green-100 text-green-700 px-5 py-3 rounded-full">
+    </div>
 
-              <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
+    <div className="flex items-center">
 
-              <span className="font-semibold text-sm">
-                Live System
-              </span>
+      {/* Live System */}
 
-            </div>
+     <div className="hidden md:flex items-center gap-3 bg-green-50 border border-green-300 px-5 py-2 rounded-full shadow-lg shadow-green-200/60">
 
-          </div>
+  <span className="relative flex h-3 w-3">
 
-        </div>
+    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+
+    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-600"></span>
+
+  </span>
+
+  <span className="font-semibold text-green-700">
+    Live System
+  </span>
+
+</div>
+    </div>
+
+  </div>
+
+</div>
 
 
         {/* ================= PAGE CONTENT ================= */}
 
-        <div className="p-10 pt-32">
+        <div className="p-10 pt-40 space-y-8">
 
 
           {/* ===================================================== */}
