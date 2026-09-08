@@ -1,39 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 function GovernanceRiskModal({ onClose, onSave, risk }) {
-  const [riskTitle, setRiskTitle] = useState("");
-  const [riskCategory, setRiskCategory] = useState("");
-  const [description, setDescription] = useState("");
-  const [riskOwner, setRiskOwner] = useState("");
-  const [severity, setSeverity] = useState("Medium");
-  const [likelihood, setLikelihood] = useState("Possible");
-  const [status, setStatus] = useState("Open");
-  const [mitigationPlan, setMitigationPlan] = useState("");
-  const [targetDate, setTargetDate] = useState("");
-
-  useEffect(() => {
-    if (risk) {
-      setRiskTitle(risk.riskTitle || "");
-      setRiskCategory(risk.riskCategory || "");
-      setDescription(risk.description || "");
-      setRiskOwner(risk.riskOwner || "");
-      setSeverity(risk.severity || "Medium");
-      setLikelihood(risk.likelihood || "Possible");
-      setStatus(risk.status || "Open");
-      setMitigationPlan(risk.mitigationPlan || "");
-      setTargetDate(risk.targetDate || "");
-    } else {
-      setRiskTitle("");
-      setRiskCategory("");
-      setDescription("");
-      setRiskOwner("");
-      setSeverity("Medium");
-      setLikelihood("Possible");
-      setStatus("Open");
-      setMitigationPlan("");
-      setTargetDate("");
-    }
-  }, [risk]);
+  const [riskTitle, setRiskTitle] = useState(risk?.riskTitle || "");
+  const [riskCategory, setRiskCategory] = useState(risk?.riskCategory || "");
+  const [description, setDescription] = useState(risk?.description || "");
+  const [riskOwner, setRiskOwner] = useState(risk?.riskOwner || "");
+  const [severity, setSeverity] = useState(risk?.severity || "Medium");
+  const [likelihood, setLikelihood] = useState(risk?.likelihood || "Possible");
+  const [status, setStatus] = useState(risk?.status || "Open");
+  const [mitigationPlan, setMitigationPlan] = useState(risk?.mitigationPlan || "");
+  const [targetDate, setTargetDate] = useState(risk?.targetDate || "");
 
   if (!onClose) {
     return null;
@@ -69,21 +45,21 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-      <div className="w-full max-w-3xl max-h-[92vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs px-4 py-6">
+      <div className="w-full max-w-3xl max-h-[92vh] bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-transparent dark:border-gray-700">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-7 py-5 border-b border-gray-200 shrink-0">
+        <div className="flex items-center justify-between px-7 py-5 border-b border-gray-200 dark:border-gray-700 shrink-0">
           <div>
-            <p className="text-sm font-semibold text-green-600 uppercase tracking-wide">
+            <p className="text-sm font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide">
               Governance
             </p>
 
-            <h2 className="text-2xl font-bold text-gray-900 mt-1">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
               {risk ? "Edit Risk" : "Add New Risk"}
             </h2>
 
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Record and monitor an organizational governance risk.
             </p>
           </div>
@@ -91,7 +67,7 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
           <button
             type="button"
             onClick={onClose}
-            className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-xl flex items-center justify-center transition"
+            className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 text-xl flex items-center justify-center transition"
             aria-label="Close"
           >
             ×
@@ -105,16 +81,16 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
             {/* Risk Information */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-950/60 text-green-600 dark:text-green-300 flex items-center justify-center font-bold">
                   1
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
                     Risk Information
                   </h3>
 
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Basic information about the identified risk.
                   </p>
                 </div>
@@ -124,7 +100,7 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
 
                 {/* Risk Title */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Risk Title
                   </label>
 
@@ -133,20 +109,20 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
                     value={riskTitle}
                     onChange={(e) => setRiskTitle(e.target.value)}
                     placeholder="e.g. Regulatory compliance gap"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                   />
                 </div>
 
                 {/* Category */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Risk Category
                   </label>
 
                   <select
                     value={riskCategory}
                     onChange={(e) => setRiskCategory(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                   >
                     <option value="" disabled>
                       Select category
@@ -180,7 +156,7 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
 
                 {/* Owner */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Risk Owner
                   </label>
 
@@ -189,13 +165,13 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
                     value={riskOwner}
                     onChange={(e) => setRiskOwner(e.target.value)}
                     placeholder="e.g. Compliance Manager"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                   />
                 </div>
 
                 {/* Description */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Description
                   </label>
 
@@ -204,7 +180,7 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
                     onChange={(e) => setDescription(e.target.value)}
                     rows={4}
                     placeholder="Describe the risk, its potential impact and relevant context..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none resize-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none resize-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                   />
                 </div>
 
@@ -212,18 +188,18 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
             </div>
 
             {/* Risk Assessment */}
-            <div className="border-t border-gray-100 pt-6">
+            <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-yellow-50 text-yellow-600 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-lg bg-yellow-50 dark:bg-yellow-950/60 text-yellow-600 dark:text-yellow-300 flex items-center justify-center font-bold">
                   2
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
                     Risk Assessment
                   </h3>
 
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Assess severity and likelihood of the risk.
                   </p>
                 </div>
@@ -233,14 +209,14 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
 
                 {/* Severity */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Severity
                   </label>
 
                   <select
                     value={severity}
                     onChange={(e) => setSeverity(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                   >
                     <option value="Low">
                       Low
@@ -262,14 +238,14 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
 
                 {/* Likelihood */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Likelihood
                   </label>
 
                   <select
                     value={likelihood}
                     onChange={(e) => setLikelihood(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                   >
                     <option value="Rare">
                       Rare
@@ -297,18 +273,18 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
             </div>
 
             {/* Mitigation */}
-            <div className="border-t border-gray-100 pt-6">
+            <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 flex items-center justify-center font-bold">
                   3
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
                     Mitigation & Monitoring
                   </h3>
 
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Define how the organization will manage the risk.
                   </p>
                 </div>
@@ -318,7 +294,7 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
 
                 {/* Mitigation Plan */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Mitigation / Action Plan
                   </label>
 
@@ -327,7 +303,7 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
                     onChange={(e) => setMitigationPlan(e.target.value)}
                     rows={4}
                     placeholder="Describe the actions being taken to reduce or manage this risk..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none resize-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none resize-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                   />
                 </div>
 
@@ -335,14 +311,14 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
 
                   {/* Status */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Risk Status
                     </label>
 
                     <select
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     >
                       <option value="Open">
                         Open
@@ -364,7 +340,7 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
 
                   {/* Target Date */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Target Date
                     </label>
 
@@ -372,7 +348,7 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
                       type="date"
                       value={targetDate}
                       onChange={(e) => setTargetDate(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
                   </div>
 
@@ -385,12 +361,12 @@ function GovernanceRiskModal({ onClose, onSave, risk }) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 px-7 py-5 border-t border-gray-200 bg-white shrink-0">
+        <div className="flex justify-end gap-3 px-7 py-5 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shrink-0">
 
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-3 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition"
+            className="px-5 py-3 border border-gray-300 dark:border-gray-600 rounded-xl font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
           >
             Cancel
           </button>

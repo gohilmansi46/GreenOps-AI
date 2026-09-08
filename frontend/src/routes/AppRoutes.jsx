@@ -1,4 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { Bot } from "lucide-react";
+import AIChatDrawer from "../components/AIChatDrawer";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
@@ -8,6 +11,37 @@ import Environmental from "../pages/Environmental";
 import Social from "../pages/Social";
 import Governance from "../pages/Governance";
 import Reports from "../pages/Reports";
+import PublicESGPortal from "../pages/PublicESGPortal";
+
+function GlobalAIChat() {
+  const location = useLocation();
+  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
+
+  // Hide AI Copilot button on Home page (home.jsx -> '/')
+  if (location.pathname === "/") {
+    return null;
+  }
+
+  return (
+    <>
+      {/* Floating AI Chat Trigger Button */}
+      <button
+        onClick={() => setIsAIChatOpen(true)}
+        className="fixed bottom-6 right-6 z-40 bg-green-700 hover:bg-green-800 text-white p-4 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 hover:scale-105 group border-2 border-green-400"
+        title="Ask AI Copilot"
+      >
+        <Bot size={24} className="group-hover:rotate-12 transition-transform" />
+        <span className="text-sm font-bold pr-1 hidden sm:inline">Ask AI Copilot</span>
+      </button>
+
+      {/* Persistent AI Drawer */}
+      <AIChatDrawer
+        isOpen={isAIChatOpen}
+        onClose={() => setIsAIChatOpen(false)}
+      />
+    </>
+  );
+}
 
 function AppRoutes() {
   return (
@@ -19,6 +53,8 @@ function AppRoutes() {
 
         <Route path="/register" element={<Register />} />
 
+        <Route path="/public-portal" element={<PublicESGPortal />} />
+
         <Route
           path="/dashboard"
           element={
@@ -29,42 +65,43 @@ function AppRoutes() {
         />
 
         <Route
-  path="/environmental"
-  element={
-    <ProtectedRoute>
-      <Environmental />
-    </ProtectedRoute>
-  }
-/>
+          path="/environmental"
+          element={
+            <ProtectedRoute>
+              <Environmental />
+            </ProtectedRoute>
+          }
+        />
 
- <Route
-  path="/social"
-  element={
-    <ProtectedRoute>
-      <Social />
-    </ProtectedRoute>
-  }
-/>
+        <Route
+          path="/social"
+          element={
+            <ProtectedRoute>
+              <Social />
+            </ProtectedRoute>
+          }
+        />
 
- <Route
-  path="/governance"
-  element={
-    <ProtectedRoute>
-      <Governance />
-    </ProtectedRoute>
-  }
-/>
+        <Route
+          path="/governance"
+          element={
+            <ProtectedRoute>
+              <Governance />
+            </ProtectedRoute>
+          }
+        />
 
-<Route
-  path="/reports"
-  element={
-    <ProtectedRoute>
-      <Reports />
-    </ProtectedRoute>
-  }
-/>
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
 
       </Routes>
+      <GlobalAIChat />
     </BrowserRouter>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import toast from "react-hot-toast";
+import { useTheme } from "../context/ThemeContext";
 
 import {
   collection,
@@ -26,8 +27,8 @@ import {
 } from "lucide-react";
 
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   BarChart,
   Bar,
   XAxis,
@@ -38,7 +39,7 @@ import {
 } from "recharts";
 
 function Social() {
-
+  const { darkMode } = useTheme();
   const [totalEmployees, setTotalEmployees] = useState("");
   const [maleEmployees, setMaleEmployees] = useState("");
   const [femaleEmployees, setFemaleEmployees] = useState("");
@@ -459,11 +460,33 @@ const handleDelete = async () => {
 };
 
 useEffect(() => {
-  fetchRecords();
+  let isMounted = true;
+  const loadData = async () => {
+    try {
+      const q = query(
+        collection(db, "socialData"),
+        orderBy("createdAt", "desc")
+      );
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      if (isMounted) {
+        setRecords(data);
+      }
+    } catch (error) {
+      console.error("Error fetching social records:", error);
+    }
+  };
+  loadData();
+  return () => {
+    isMounted = false;
+  };
 }, []);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className={`flex min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
 
       {/* ================= SIDEBAR ================= */}
 
@@ -475,17 +498,17 @@ useEffect(() => {
 
      {/* HEADER */}
 
-<div className="fixed top-0 left-64 right-0 bg-white border-b border-gray-200 z-40">
+<div className={`fixed top-0 left-64 right-0 border-b z-40 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
   <div className="px-10 py-6 flex justify-between items-center">
 
     <div>
 
-      <h1 className="text-4xl font-bold text-gray-900">
+      <h1 className={`text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
         Social Management
       </h1>
 
-      <p className="mt-2 text-lg text-gray-500">
+      <p className={`mt-2 text-lg ${darkMode ? "text-gray-300" : "text-gray-500"}`}>
         Manage workforce, training, safety and community impact.
       </p>
 
@@ -531,31 +554,31 @@ useEffect(() => {
 
             {/* TOTAL EMPLOYEES */}
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+            <div className={`rounded-2xl border p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
               <div className="flex items-center justify-between">
 
                 <div>
 
-                  <p className="text-sm font-medium text-gray-500">
+                  <p className={`text-sm font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     Total Employees
                   </p>
 
-                  <h2 className="text-3xl font-bold text-gray-900 mt-2">
+                  <h2 className={`text-3xl font-bold mt-2 ${darkMode ? "text-white" : "text-gray-900"}`}>
                    {totalEmployeesValue}
                   </h2>
 
-                  <p className="text-sm text-gray-400 mt-2">
+                  <p className={`text-sm mt-2 ${darkMode ? "text-gray-400" : "text-gray-400"}`}>
                     Employees
                   </p>
 
                 </div>
 
-                <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center">
+                <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${darkMode ? "bg-blue-900/60" : "bg-blue-100"}`}>
 
                   <Users
                     size={28}
-                    className="text-blue-600"
+                    className={darkMode ? "text-blue-300" : "text-blue-600"}
                   />
 
                 </div>
@@ -567,31 +590,31 @@ useEffect(() => {
 
             {/* TRAINING HOURS */}
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+            <div className={`rounded-2xl border p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
               <div className="flex items-center justify-between">
 
                 <div>
 
-                  <p className="text-sm font-medium text-gray-500">
+                  <p className={`text-sm font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     Training Hours
                   </p>
 
-                  <h2 className="text-3xl font-bold text-gray-900 mt-2">
+                  <h2 className={`text-3xl font-bold mt-2 ${darkMode ? "text-white" : "text-gray-900"}`}>
                     {trainingHoursValue}
                   </h2>
 
-                  <p className="text-sm text-gray-400 mt-2">
+                  <p className={`text-sm mt-2 ${darkMode ? "text-gray-400" : "text-gray-400"}`}>
                     Total Hours
                   </p>
 
                 </div>
 
-                <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center">
+                <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${darkMode ? "bg-purple-900/60" : "bg-purple-100"}`}>
 
                   <GraduationCap
                     size={28}
-                    className="text-purple-600"
+                    className={darkMode ? "text-purple-300" : "text-purple-600"}
                   />
 
                 </div>
@@ -603,31 +626,31 @@ useEffect(() => {
 
             {/* SAFETY INCIDENTS */}
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+            <div className={`rounded-2xl border p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
               <div className="flex items-center justify-between">
 
                 <div>
 
-                  <p className="text-sm font-medium text-gray-500">
+                  <p className={`text-sm font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     Safety Incidents
                   </p>
 
-                  <h2 className="text-3xl font-bold text-gray-900 mt-2">
+                  <h2 className={`text-3xl font-bold mt-2 ${darkMode ? "text-white" : "text-gray-900"}`}>
                     {safetyIncidentsValue}
                   </h2>
 
-                  <p className="text-sm text-gray-400 mt-2">
+                  <p className={`text-sm mt-2 ${darkMode ? "text-gray-400" : "text-gray-400"}`}>
                     Reported Incidents
                   </p>
 
                 </div>
 
-                <div className="w-14 h-14 rounded-xl bg-red-100 flex items-center justify-center">
+                <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${darkMode ? "bg-red-900/60" : "bg-red-100"}`}>
 
                   <ShieldAlert
                     size={28}
-                    className="text-red-600"
+                    className={darkMode ? "text-red-300" : "text-red-600"}
                   />
 
                 </div>
@@ -639,31 +662,31 @@ useEffect(() => {
 
             {/* CSR ACTIVITIES */}
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+            <div className={`rounded-2xl border p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
               <div className="flex items-center justify-between">
 
                 <div>
 
-                  <p className="text-sm font-medium text-gray-500">
+                  <p className={`text-sm font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     CSR Activities
                   </p>
 
-                  <h2 className="text-3xl font-bold text-gray-900 mt-2">
+                  <h2 className={`text-3xl font-bold mt-2 ${darkMode ? "text-white" : "text-gray-900"}`}>
                     {csrActivitiesValue}
                   </h2>
 
-                  <p className="text-sm text-gray-400 mt-2">
+                  <p className={`text-sm mt-2 ${darkMode ? "text-gray-400" : "text-gray-400"}`}>
                     Community Activities
                   </p>
 
                 </div>
 
-                <div className="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center">
+                <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${darkMode ? "bg-green-900/60" : "bg-green-100"}`}>
 
                   <HeartHandshake
                     size={28}
-                    className="text-green-600"
+                    className={darkMode ? "text-green-300" : "text-green-600"}
                   />
 
                 </div>
@@ -684,27 +707,27 @@ useEffect(() => {
 
             {/* WORKFORCE DIVERSITY */}
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-7 shadow-sm">
+            <div className={`rounded-2xl border p-7 shadow-sm ${darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}>
 
               <div className="flex items-center justify-between mb-7">
 
                 <div>
 
-                  <h2 className="text-xl font-bold text-gray-800">
+                  <h2 className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
                     Workforce Diversity
                   </h2>
 
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className={`text-sm mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     Employee gender distribution
                   </p>
 
                 </div>
 
-                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${darkMode ? "bg-blue-900/60" : "bg-blue-100"}`}>
 
                   <Users
                     size={24}
-                    className="text-blue-600"
+                    className={darkMode ? "text-blue-300" : "text-blue-600"}
                   />
 
                 </div>
@@ -718,17 +741,17 @@ useEffect(() => {
 
                 <div className="flex justify-between mb-2">
 
-                  <span className="text-sm font-medium text-gray-600">
+                  <span className={`text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
                     Male
                   </span>
 
-                  <span className="text-sm font-semibold text-gray-800">
+                  <span className={`text-sm font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
                     {malePercentage}%
                   </span>
 
                 </div>
 
-                <div className="w-full h-3 bg-gray-100 rounded-full">
+                <div className={`w-full h-3 rounded-full ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}>
 
                   <div
                     className="h-3 bg-blue-500 rounded-full"
@@ -746,17 +769,17 @@ useEffect(() => {
 
                 <div className="flex justify-between mb-2">
 
-                  <span className="text-sm font-medium text-gray-600">
+                  <span className={`text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
                     Female
                   </span>
 
-                  <span className="text-sm font-semibold text-gray-800">
+                  <span className={`text-sm font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
                     {femalePercentage}%
                   </span>
 
                 </div>
 
-                <div className="w-full h-3 bg-gray-100 rounded-full">
+                <div className={`w-full h-3 rounded-full ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}>
 
                   <div
                     className="h-3 bg-pink-500 rounded-full"
@@ -774,17 +797,17 @@ useEffect(() => {
 
                 <div className="flex justify-between mb-2">
 
-                  <span className="text-sm font-medium text-gray-600">
+                  <span className={`text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
                     Other / Not Disclosed
                   </span>
 
-                  <span className="text-sm font-semibold text-gray-800">
+                  <span className={`text-sm font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
                    {otherPercentage}%
                   </span>
 
                 </div>
 
-                <div className="w-full h-3 bg-gray-100 rounded-full">
+                <div className={`w-full h-3 rounded-full ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}>
 
                   <div
                     className="h-3 bg-purple-500 rounded-full"
@@ -800,27 +823,27 @@ useEffect(() => {
 
             {/* TRAINING PERFORMANCE */}
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-7 shadow-sm">
+            <div className={`rounded-2xl border p-7 shadow-sm ${darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}>
 
               <div className="flex items-center justify-between mb-7">
 
                 <div>
 
-                  <h2 className="text-xl font-bold text-gray-800">
+                  <h2 className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
                     Training Performance
                   </h2>
 
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className={`text-sm mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     Employee learning and development
                   </p>
 
                 </div>
 
-                <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${darkMode ? "bg-purple-900/60" : "bg-purple-100"}`}>
 
                   <GraduationCap
                     size={24}
-                    className="text-purple-600"
+                    className={darkMode ? "text-purple-300" : "text-purple-600"}
                   />
 
                 </div>
@@ -832,17 +855,17 @@ useEffect(() => {
 
                 {/* Employees Trained */}
 
-                <div className="bg-purple-50 rounded-xl p-5">
+                <div className={`rounded-xl p-5 border ${darkMode ? "bg-purple-950/40 border-purple-900/50" : "bg-purple-50 border-transparent"}`}>
 
-                  <p className="text-sm text-gray-500">
+                  <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     Employees Trained
                   </p>
 
-                  <p className="text-3xl font-bold text-purple-700 mt-2">
+                  <p className={`text-3xl font-bold mt-2 ${darkMode ? "text-purple-300" : "text-purple-700"}`}>
                     {employeesTrainedValue}
                   </p>
 
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     Employees
                   </p>
 
@@ -851,17 +874,17 @@ useEffect(() => {
 
                 {/* Training Hours */}
 
-                <div className="bg-blue-50 rounded-xl p-5">
+                <div className={`rounded-xl p-5 border ${darkMode ? "bg-blue-950/40 border-blue-900/50" : "bg-blue-50 border-transparent"}`}>
 
-                  <p className="text-sm text-gray-500">
+                  <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     Training Hours
                   </p>
 
-                  <p className="text-3xl font-bold text-blue-700 mt-2">
-                     {trainingHoursValue}
+                  <p className={`text-3xl font-bold mt-2 ${darkMode ? "text-blue-300" : "text-blue-700"}`}>
+                      {trainingHoursValue}
                   </p>
 
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     Total Hours
                   </p>
 
@@ -872,19 +895,19 @@ useEffect(() => {
 
               {/* Average Training */}
 
-              <div className="mt-5 bg-gray-50 rounded-xl p-5">
+              <div className={`mt-5 rounded-xl p-5 ${darkMode ? "bg-gray-700/50" : "bg-gray-50"}`}>
 
-                <p className="text-sm text-gray-500">
+                <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                   Average Training Hours
                 </p>
 
                 <div className="flex items-end gap-2 mt-1">
 
-                  <p className="text-3xl font-bold text-gray-800">
+                  <p className={`text-3xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
                     {averageTrainingHours}
                   </p>
 
-                  <span className="text-sm text-gray-500 mb-1">
+                  <span className={`text-sm mb-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     hours / employee
                   </span>
 
@@ -900,7 +923,7 @@ useEffect(() => {
           {/*                SOCIAL PERFORMANCE SCORE               */}
           {/* ===================================================== */}
 
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mt-8 p-8">
+          <div className={`rounded-2xl border shadow-sm mt-8 p-8 ${darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}>
 
             <div className="flex flex-col md:flex-row items-center justify-between gap-8">
 
@@ -908,15 +931,15 @@ useEffect(() => {
 
               <div>
 
-                <p className="text-sm font-semibold text-green-600 uppercase tracking-wide">
+                <p className="text-sm font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide">
                   ESG Social Performance
                 </p>
 
-                <h2 className="text-2xl font-bold text-gray-800 mt-2">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white mt-2">
                   Social Performance Score
                 </h2>
 
-                <p className="text-gray-500 mt-2 max-w-xl">
+                <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-xl">
                   Overall social sustainability performance based on
                   workforce diversity, employee training, safety and
                   community engagement.
@@ -929,13 +952,13 @@ useEffect(() => {
 
               <div className="flex items-center gap-6">
 
-                <div className="w-32 h-32 rounded-full bg-green-50 border-8 border-green-500 flex flex-col items-center justify-center">
+                <div className="w-32 h-32 rounded-full bg-green-50 dark:bg-green-950/40 border-8 border-green-500 flex flex-col items-center justify-center">
 
-                  <span className="text-4xl font-bold text-green-700">
+                  <span className="text-4xl font-bold text-green-700 dark:text-green-300">
                     {socialScore}
                   </span>
 
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
                     / 100
                   </span>
 
@@ -944,7 +967,7 @@ useEffect(() => {
 
                 <div>
 
-                  <p className="text-lg font-bold text-gray-800">
+                  <p className="text-lg font-bold text-gray-800 dark:text-white">
                     {socialScore >= 80
                       ? "Excellent Performance"
                       : socialScore >= 60
@@ -954,7 +977,7 @@ useEffect(() => {
                       : "Poor Performance"}
                   </p>
 
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     Based on current social metrics
                   </p>
 
@@ -967,17 +990,17 @@ useEffect(() => {
 
             {/* Score Breakdown */}
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-gray-100">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
 
               {/* Diversity */}
 
-              <div className="bg-blue-50 rounded-xl p-4">
+              <div className="bg-blue-50 dark:bg-blue-950/40 rounded-xl p-4 border border-transparent dark:border-blue-900/50">
 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Diversity
                 </p>
 
-                <p className="text-xl font-bold text-blue-700 mt-1">
+                <p className="text-xl font-bold text-blue-700 dark:text-blue-300 mt-1">
                   {diversityScore}/25
                 </p>
 
@@ -986,13 +1009,13 @@ useEffect(() => {
 
               {/* Training */}
 
-              <div className="bg-purple-50 rounded-xl p-4">
+              <div className="bg-purple-50 dark:bg-purple-950/40 rounded-xl p-4 border border-transparent dark:border-purple-900/50">
 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Training
                 </p>
 
-                <p className="text-xl font-bold text-purple-700 mt-1">
+                <p className="text-xl font-bold text-purple-700 dark:text-purple-300 mt-1">
                   {trainingScore}/25
                 </p>
 
@@ -1001,13 +1024,13 @@ useEffect(() => {
 
               {/* Safety */}
 
-              <div className="bg-red-50 rounded-xl p-4">
+              <div className="bg-red-50 dark:bg-red-950/40 rounded-xl p-4 border border-transparent dark:border-red-900/50">
 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Safety
                 </p>
 
-                <p className="text-xl font-bold text-red-700 mt-1">
+                <p className="text-xl font-bold text-red-700 dark:text-red-300 mt-1">
                   {safetyScore}/25
                 </p>
 
@@ -1016,13 +1039,13 @@ useEffect(() => {
 
               {/* CSR */}
 
-              <div className="bg-green-50 rounded-xl p-4">
+              <div className="bg-green-50 dark:bg-green-950/40 rounded-xl p-4 border border-transparent dark:border-green-900/50">
 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   CSR
                 </p>
 
-                <p className="text-xl font-bold text-green-700 mt-1">
+                <p className="text-xl font-bold text-green-700 dark:text-green-300 mt-1">
                   {csrScore}/25
                 </p>
 
@@ -1036,51 +1059,41 @@ useEffect(() => {
           {/*                 TRAINING HOURS TREND                  */}
           {/* ===================================================== */}
 
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mt-8 p-8">
+          <div className={`rounded-2xl border shadow-sm mt-8 p-8 ${darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}>
 
             {/* Chart Header */}
-
-            <div className="flex items-center justify-between mb-6">
-
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-
-                <h2 className="text-2xl font-bold text-gray-800">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
                   Training Hours Trend
                 </h2>
-
-                <p className="text-gray-500 mt-1">
+                <p className="text-gray-500 dark:text-gray-400 mt-1">
                   Employee training hours over recorded periods.
                 </p>
-
               </div>
 
-              <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-
-                <GraduationCap
-                  size={24}
-                  className="text-purple-600"
-                />
-
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-purple-500/10 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 border border-purple-500/30">
+                  Total: {trainingChartData.reduce((acc, curr) => acc + (curr.hours || 0), 0)} Hours
+                </span>
+                <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center">
+                  <GraduationCap
+                    size={22}
+                    className="text-purple-600 dark:text-purple-300"
+                  />
+                </div>
               </div>
-
             </div>
 
-
             {/* Chart */}
-
             <div className="w-full h-80">
-
               {trainingChartData.length === 0 ? (
-
-                <div className="h-full flex items-center justify-center text-gray-400">
+                <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
                   No training data available yet.
                 </div>
-
               ) : (
-
                 <ResponsiveContainer width="100%" height="100%">
-
-                  <LineChart
+                  <AreaChart
                     data={trainingChartData}
                     margin={{
                       top: 10,
@@ -1089,211 +1102,236 @@ useEffect(() => {
                       bottom: 10,
                     }}
                   >
+                    <defs>
+                      <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#a855f7" stopOpacity={0.5} />
+                        <stop offset="95%" stopColor="#a855f7" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
 
-                    <CartesianGrid strokeDasharray="3 3" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#374151" : "#e5e7eb"} strokeOpacity={0.5} />
 
                     <XAxis
                       dataKey="month"
+                      stroke={darkMode ? "#d1d5db" : "#4b5563"}
+                      tick={{ fill: darkMode ? "#d1d5db" : "#4b5563", fontSize: 12, fontWeight: 600 }}
                     />
 
-                    <YAxis />
+                    <YAxis
+                      stroke={darkMode ? "#d1d5db" : "#4b5563"}
+                      tick={{ fill: darkMode ? "#d1d5db" : "#4b5563", fontSize: 12, fontWeight: 600 }}
+                    />
 
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: darkMode ? "#111827" : "#ffffff",
+                        borderColor: darkMode ? "#8b5cf6" : "#a855f7",
+                        borderRadius: "0.75rem",
+                        color: darkMode ? "#ffffff" : "#111827",
+                        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+                        fontWeight: 600,
+                      }}
+                    />
 
-                    <Line
+                    <Area
                       type="monotone"
                       dataKey="hours"
-                      stroke="#9333ea"
-                      strokeWidth={3}
-                      dot={{ r: 5 }}
-                      activeDot={{ r: 7 }}
+                      stroke="#a855f7"
+                      strokeWidth={3.5}
+                      fillOpacity={1}
+                      fill="url(#purpleGradient)"
+                      dot={{ r: 5, fill: "#a855f7", stroke: darkMode ? "#111827" : "#ffffff", strokeWidth: 2 }}
+                      activeDot={{ r: 7, fill: "#c084fc" }}
                     />
-
-                  </LineChart>
-
+                  </AreaChart>
                 </ResponsiveContainer>
-
               )}
-
             </div>
-
           </div>
           
       {/* ===================================================== */}
-{/*              SAFETY + CSR ANALYTICS                  */}
-{/* ===================================================== */}
+      {/*              SAFETY + CSR ANALYTICS                  */}
+      {/* ===================================================== */}
 
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
 
+        {/* ===================================================== */}
+        {/*                 SAFETY INCIDENTS TREND                */}
+        {/* ===================================================== */}
 
-  {/* ===================================================== */}
-  {/*                 SAFETY INCIDENTS TREND                */}
-  {/* ===================================================== */}
+        <div className={`rounded-2xl border shadow-sm p-6 ${darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                Safety Incidents Trend
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Reported workplace safety incidents over recorded periods.
+              </p>
+            </div>
 
-  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30">
+                {safetyChartData.reduce((acc, curr) => acc + (curr.incidents || 0), 0)} Total
+              </span>
+              <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/60 flex items-center justify-center">
+                <ShieldAlert
+                  size={20}
+                  className="text-red-600 dark:text-red-300"
+                />
+              </div>
+            </div>
+          </div>
 
-    <div className="flex items-center justify-between mb-6">
+          <div className="w-full h-72">
+            {safetyChartData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
+                No safety data available yet.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={safetyChartData}
+                  barSize={36}
+                  margin={{
+                    top: 10,
+                    right: 10,
+                    left: -10,
+                    bottom: 10,
+                  }}
+                >
+                  <defs>
+                    <linearGradient id="safetyRedGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f87171" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#dc2626" stopOpacity={0.85} />
+                    </linearGradient>
+                  </defs>
 
-      <div>
+                  <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#374151" : "#e5e7eb"} strokeOpacity={0.5} />
 
-        <h2 className="text-xl font-bold text-gray-800">
-          Safety Incidents Trend
-        </h2>
+                  <XAxis
+                    dataKey="month"
+                    stroke={darkMode ? "#d1d5db" : "#4b5563"}
+                    tick={{ fill: darkMode ? "#d1d5db" : "#4b5563", fontSize: 12, fontWeight: 600 }}
+                  />
 
-        <p className="text-sm text-gray-500 mt-1">
-          Reported workplace safety incidents over recorded periods.
-        </p>
+                  <YAxis
+                    allowDecimals={false}
+                    stroke={darkMode ? "#d1d5db" : "#4b5563"}
+                    tick={{ fill: darkMode ? "#d1d5db" : "#4b5563", fontSize: 12, fontWeight: 600 }}
+                  />
 
-      </div>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: darkMode ? "#111827" : "#ffffff",
+                      borderColor: darkMode ? "#ef4444" : "#dc2626",
+                      borderRadius: "0.75rem",
+                      color: darkMode ? "#ffffff" : "#111827",
+                      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+                      fontWeight: 600,
+                    }}
+                  />
 
-      <div className="w-11 h-11 rounded-xl bg-red-100 flex items-center justify-center">
-
-        <ShieldAlert
-          size={22}
-          className="text-red-600"
-        />
-
-      </div>
-
-    </div>
-
-
-    <div className="w-full h-72">
-
-      {safetyChartData.length === 0 ? (
-
-        <div className="h-full flex items-center justify-center text-gray-400">
-          No safety data available yet.
+                  <Bar
+                    dataKey="incidents"
+                    fill="url(#safetyRedGrad)"
+                    radius={[10, 10, 3, 3]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
 
-      ) : (
+        {/* ===================================================== */}
+        {/*                  CSR ACTIVITY TREND                  */}
+        {/* ===================================================== */}
 
-        <ResponsiveContainer width="100%" height="100%">
+        <div className={`rounded-2xl border shadow-sm p-6 ${darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                CSR Activity Trend
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Community and social responsibility activities over recorded periods.
+              </p>
+            </div>
 
-          <BarChart
-            data={safetyChartData}
-            margin={{
-              top: 10,
-              right: 10,
-              left: -10,
-              bottom: 10,
-            }}
-          >
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                {csrChartData.reduce((acc, curr) => acc + (curr.activities || 0), 0)} Total
+              </span>
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center">
+                <HeartHandshake
+                  size={20}
+                  className="text-emerald-600 dark:text-emerald-300"
+                />
+              </div>
+            </div>
+          </div>
 
-            <CartesianGrid strokeDasharray="3 3" />
+          <div className="w-full h-72">
+            {csrChartData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
+                No CSR data available yet.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={csrChartData}
+                  barSize={36}
+                  margin={{
+                    top: 10,
+                    right: 10,
+                    left: -10,
+                    bottom: 10,
+                  }}
+                >
+                  <defs>
+                    <linearGradient id="csrGreenGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#34d399" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#059669" stopOpacity={0.85} />
+                    </linearGradient>
+                  </defs>
 
-            <XAxis
-              dataKey="month"
-            />
+                  <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#374151" : "#e5e7eb"} strokeOpacity={0.5} />
 
-            <YAxis
-              allowDecimals={false}
-            />
+                  <XAxis
+                    dataKey="month"
+                    stroke={darkMode ? "#d1d5db" : "#4b5563"}
+                    tick={{ fill: darkMode ? "#d1d5db" : "#4b5563", fontSize: 12, fontWeight: 600 }}
+                  />
 
-            <Tooltip />
+                  <YAxis
+                    allowDecimals={false}
+                    stroke={darkMode ? "#d1d5db" : "#4b5563"}
+                    tick={{ fill: darkMode ? "#d1d5db" : "#4b5563", fontSize: 12, fontWeight: 600 }}
+                  />
 
-            <Bar
-              dataKey="incidents"
-              fill="#dc2626"
-              radius={[6, 6, 0, 0]}
-            />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: darkMode ? "#111827" : "#ffffff",
+                      borderColor: darkMode ? "#10b981" : "#059669",
+                      borderRadius: "0.75rem",
+                      color: darkMode ? "#ffffff" : "#111827",
+                      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+                      fontWeight: 600,
+                    }}
+                  />
 
-          </BarChart>
-
-        </ResponsiveContainer>
-
-      )}
-
-    </div>
-
-  </div>
-
-
-
-  {/* ===================================================== */}
-  {/*                  CSR ACTIVITY TREND                  */}
-  {/* ===================================================== */}
-
-  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-
-    <div className="flex items-center justify-between mb-6">
-
-      <div>
-
-        <h2 className="text-xl font-bold text-gray-800">
-          CSR Activity Trend
-        </h2>
-
-        <p className="text-sm text-gray-500 mt-1">
-          Community and social responsibility activities over recorded periods.
-        </p>
-
-      </div>
-
-      <div className="w-11 h-11 rounded-xl bg-green-100 flex items-center justify-center">
-
-        <HeartHandshake
-          size={22}
-          className="text-green-600"
-        />
-
-      </div>
-
-    </div>
-
-
-    <div className="w-full h-72">
-
-      {csrChartData.length === 0 ? (
-
-        <div className="h-full flex items-center justify-center text-gray-400">
-          No CSR data available yet.
+                  <Bar
+                    dataKey="activities"
+                    fill="url(#csrGreenGrad)"
+                    radius={[10, 10, 3, 3]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
 
-      ) : (
-
-        <ResponsiveContainer width="100%" height="100%">
-
-          <BarChart
-            data={csrChartData}
-            margin={{
-              top: 10,
-              right: 10,
-              left: -10,
-              bottom: 10,
-            }}
-          >
-
-            <CartesianGrid strokeDasharray="3 3" />
-
-            <XAxis
-              dataKey="month"
-            />
-
-            <YAxis
-              allowDecimals={false}
-            />
-
-            <Tooltip />
-
-            <Bar
-              dataKey="activities"
-              fill="#16a34a"
-              radius={[6, 6, 0, 0]}
-            />
-
-          </BarChart>
-
-        </ResponsiveContainer>
-
-      )}
-
-    </div>
-
-  </div>
-
-
-</div>
+      </div>
 
           {/* ===================================================== */}
           {/*                    ADD SOCIAL RECORD                   */}
@@ -1302,7 +1340,7 @@ useEffect(() => {
           <form
   ref={formRef}
   onSubmit={handleSubmit}
-  className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 mt-8"
+  className={`rounded-2xl border shadow-sm p-8 mt-8 ${darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}
 >
 
 
@@ -1312,21 +1350,21 @@ useEffect(() => {
 
               <div>
 
-                <h2 className="text-2xl font-bold text-gray-800">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
                   Add Social Record
                 </h2>
 
-                <p className="text-gray-500 mt-1">
+                <p className="text-gray-500 dark:text-gray-400 mt-1">
                   Enter the latest social sustainability data.
                 </p>
 
               </div>
 
-              <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/60 flex items-center justify-center">
 
                 <Users
                   size={24}
-                  className="text-green-600"
+                  className="text-green-600 dark:text-green-300"
                 />
 
               </div>
@@ -1338,7 +1376,7 @@ useEffect(() => {
 
             <div className="mb-8">
 
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                 Workforce
               </h3>
 
@@ -1346,7 +1384,7 @@ useEffect(() => {
 
                 <div>
 
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Total Employees
                   </label>
 
@@ -1355,10 +1393,10 @@ useEffect(() => {
                     placeholder="Enter total employees"
                     value={totalEmployees}
                     onChange={(e) => setTotalEmployees(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 ${
+                    className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white ${
                     validationError
                       ? "border-red-400 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
+                      : "border-gray-300 dark:border-gray-700 focus:ring-green-500"
                     }`}
                   />
 
@@ -1367,7 +1405,7 @@ useEffect(() => {
 
                 <div>
 
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Male Employees
                   </label>
 
@@ -1376,10 +1414,10 @@ useEffect(() => {
                     placeholder="Enter male employees"
                     value={maleEmployees}
                     onChange={(e) => setMaleEmployees(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 ${
+                    className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white ${
                     validationError
                       ? "border-red-400 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
+                      : "border-gray-300 dark:border-gray-700 focus:ring-green-500"
                     }`}
                   />
 
@@ -1388,7 +1426,7 @@ useEffect(() => {
 
                 <div>
 
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Female Employees
                   </label>
 
@@ -1397,10 +1435,10 @@ useEffect(() => {
                     placeholder="Enter female employees"
                     value={femaleEmployees}
                     onChange={(e) => setFemaleEmployees(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 ${
+                    className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white ${
                       validationError
                         ? "border-red-400 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-green-500"
+                        : "border-gray-300 dark:border-gray-700 focus:ring-green-500"
                     }`}
                   />
 
@@ -1411,7 +1449,7 @@ useEffect(() => {
             </div>
             <div>
 
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Other / Not Disclosed
                 </label>
 
@@ -1421,31 +1459,31 @@ useEffect(() => {
                   placeholder="Enter other employees"
                   value={otherEmployees}
                   onChange={(e) => setOtherEmployees(e.target.value)}
-                  className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 ${
+                  className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white ${
                     validationError
                       ? "border-red-400 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
+                      : "border-gray-300 dark:border-gray-700 focus:ring-green-500"
                   }`}
                 />
 
               </div>
 
 {validationError && (
-  <div className="mt-5 bg-red-50 border border-red-200 rounded-xl px-5 py-4">
+  <div className="mt-5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl px-5 py-4">
 
     <div className="flex items-start gap-3">
 
-      <div className="mt-0.5 text-red-600 text-lg">
+      <div className="mt-0.5 text-red-600 dark:text-red-400 text-lg">
         ⚠
       </div>
 
       <div>
 
-        <p className="text-sm font-semibold text-red-800">
+        <p className="text-sm font-semibold text-red-800 dark:text-red-300">
           Workforce Data Needs Correction
         </p>
 
-        <p className="text-sm text-red-600 mt-1 leading-6">
+        <p className="text-sm text-red-600 dark:text-red-400 mt-1 leading-6">
           {validationError}
         </p>
 
@@ -1460,7 +1498,7 @@ useEffect(() => {
 
             <div className="mb-8">
 
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                 Employee Training
               </h3>
 
@@ -1468,7 +1506,7 @@ useEffect(() => {
 
                 <div>
 
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Employees Trained
                   </label>
 
@@ -1477,15 +1515,15 @@ useEffect(() => {
                     placeholder="Enter employees trained"
                     value={employeesTrained}
                     onChange={(e) => setEmployeesTrained(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 ${
+                    className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white ${
                     trainedError
                       ? "border-red-400 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-purple-500"
+                      : "border-gray-300 dark:border-gray-700 focus:ring-purple-500"
                     }`}
                   />
 
                     {trainedError && (
-                      <p className="text-sm text-red-600 mt-2">
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-2">
                         ⚠ {trainedError}
                       </p>
                     )}
@@ -1494,7 +1532,7 @@ useEffect(() => {
 
                 <div>
 
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Training Hours
                   </label>
 
@@ -1503,10 +1541,10 @@ useEffect(() => {
                     placeholder="Enter total training hours"
                     value={trainingHours}
                     onChange={(e) => setTrainingHours(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 ${
+                    className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white ${
                     trainingError
                       ? "border-red-400 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-purple-500"
+                      : "border-gray-300 dark:border-gray-700 focus:ring-purple-500"
                     }`}
                   />
 
@@ -1516,17 +1554,17 @@ useEffect(() => {
               {/* ================= TRAINING CALCULATION ================= */}
 
 {Number(employeesTrained) > 0 && Number(trainingHours) >= 0 && (
-  <div className="mt-5 bg-purple-50 border border-purple-100 rounded-xl px-5 py-4">
+  <div className="mt-5 bg-purple-50 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/50 rounded-xl px-5 py-4">
 
     <div className="flex items-center justify-between">
 
       <div>
 
-        <p className="text-sm font-medium text-gray-600">
+        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
           Average Training Hours
         </p>
 
-        <p className="text-2xl font-bold text-purple-700 mt-1">
+        <p className="text-2xl font-bold text-purple-700 dark:text-purple-300 mt-1">
           {(
             Number(trainingHours) /
             Number(employeesTrained)
@@ -1537,7 +1575,7 @@ useEffect(() => {
 
       <div className="text-right">
 
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Hours per trained employee
         </p>
 
@@ -1548,13 +1586,13 @@ useEffect(() => {
           </div>
           )}
             {trainingError && (
-                <div className="mt-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                <div className="mt-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl px-4 py-3">
 
-                  <p className="text-sm font-semibold text-red-700">
+                  <p className="text-sm font-semibold text-red-700 dark:text-red-300">
                     ⚠ Invalid Training Data
                   </p>
 
-                  <p className="text-sm text-red-600 mt-1">
+                  <p className="text-sm text-red-600 dark:text-red-400 mt-1">
                     {trainingError}
                   </p>
 
@@ -1567,13 +1605,13 @@ useEffect(() => {
 
             <div className="mb-8">
 
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                 Health & Safety
               </h3>
 
               <div className="max-w-md">
 
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Safety Incidents
                 </label>
 
@@ -1582,10 +1620,10 @@ useEffect(() => {
                   placeholder="Enter safety incidents"
                   value={safetyIncidents}
                   onChange={(e) => setSafetyIncidents(e.target.value)}
-                  className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 ${
+                  className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white ${
                     safetyError
                       ? "border-red-400 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-red-500"
+                      : "border-gray-300 dark:border-gray-700 focus:ring-red-500"
                   }`}
                 />
 
@@ -1594,13 +1632,13 @@ useEffect(() => {
             </div>
 
             {safetyError && (
-            <div className="mt-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <div className="mt-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl px-4 py-3">
 
-              <p className="text-sm font-semibold text-red-700">
+              <p className="text-sm font-semibold text-red-700 dark:text-red-300">
                 ⚠ Invalid Safety Data
               </p>
 
-              <p className="text-sm text-red-600 mt-1">
+              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
                 {safetyError}
               </p>
 
@@ -1611,13 +1649,13 @@ useEffect(() => {
 
             <div className="mb-8">
 
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                 CSR & Community Engagement
               </h3>
 
               <div className="max-w-md">
 
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   CSR Activities
                 </label>
 
@@ -1626,10 +1664,10 @@ useEffect(() => {
                   placeholder="Enter CSR activities"
                   value={csrActivities}
                   onChange={(e) => setCsrActivities(e.target.value)}
-                  className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 ${
+                  className={`w-full px-4 py-3 rounded-xl border outline-none focus:ring-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white ${
                     csrError
                       ? "border-red-400 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
+                      : "border-gray-300 dark:border-gray-700 focus:ring-green-500"
                   }`}
                 />
 
@@ -1638,13 +1676,13 @@ useEffect(() => {
             </div>
             
               {csrError && (
-              <div className="mt-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+              <div className="mt-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl px-4 py-3">
 
-                <p className="text-sm font-semibold text-red-700">
+                <p className="text-sm font-semibold text-red-700 dark:text-red-300">
                   ⚠ Invalid CSR Data
                 </p>
 
-                <p className="text-sm text-red-600 mt-1">
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1">
                   {csrError}
                 </p>
 
@@ -1653,7 +1691,7 @@ useEffect(() => {
 
             {/* ================= SAVE BUTTON ================= */}
 
-            <div className="flex justify-end pt-5 border-t border-gray-100">
+            <div className="flex justify-end pt-5 border-t border-gray-100 dark:border-gray-700">
 
             <button
               type="submit"
@@ -1671,25 +1709,25 @@ useEffect(() => {
           </form>
 {/* ================= SOCIAL RECORDS ================= */}
 
-<div className="bg-white rounded-2xl border border-gray-200 shadow-sm mt-8 overflow-hidden">
+<div className={`rounded-2xl border shadow-sm mt-8 overflow-hidden ${darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}>
 
   {/* Table Header */}
 
-  <div className="px-8 py-6 border-b border-gray-200">
+  <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
 
     <div className="flex justify-between items-center">
 
       <div>
-        <h2 className="text-2xl font-bold text-gray-800">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
           Social Records
         </h2>
 
-        <p className="text-gray-500 mt-1">
+        <p className="text-gray-500 dark:text-gray-400 mt-1">
           View and monitor submitted social sustainability data.
         </p>
       </div>
 
-      <div className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold">
+      <div className="bg-green-100 dark:bg-green-900/60 text-green-700 dark:text-green-300 px-4 py-2 rounded-full text-sm font-semibold">
         {records.length} Records
       </div>
 
@@ -1704,47 +1742,47 @@ useEffect(() => {
 
     <table className="w-full">
 
-      <thead className="bg-gray-50 border-b border-gray-200">
+      <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
 
         <tr>
 
-          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">
+          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
             Employees
           </th>
 
-          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">
+          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
             Male
           </th>
 
-          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">
+          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
             Female
           </th>
 
-          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">
+          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
             Other
           </th>
 
-          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">
+          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
             Trained
           </th>
 
-          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">
+          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
             Training Hours
           </th>
 
-          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">
+          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
             Safety
           </th>
 
-          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">
+          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
             CSR
           </th>
 
-          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">
+          <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
             Date
           </th>
 
-          <th className="text-center px-6 py-4 text-sm font-semibold text-gray-600">
+          <th className="text-center px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
             Actions
           </th>
 
@@ -1761,7 +1799,7 @@ useEffect(() => {
 
             <td
               colSpan="12"
-              className="text-center py-12 text-gray-500"
+              className="text-center py-12 text-gray-500 dark:text-gray-400"
             >
               No social records found.
             </td>
@@ -1774,41 +1812,41 @@ useEffect(() => {
 
             <tr
               key={record.id}
-              className="border-b border-gray-100 hover:bg-gray-50 transition">
+              className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
 
-              <td className="px-6 py-4 font-semibold text-gray-800">
+              <td className="px-6 py-4 font-semibold text-gray-800 dark:text-white">
                 {record.totalEmployees}
               </td>
 
-              <td className="px-6 py-4 text-gray-600">
+              <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                 {record.maleEmployees}
               </td>
 
-              <td className="px-6 py-4 text-gray-600">
+              <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                 {record.femaleEmployees}
               </td>
 
-              <td className="px-6 py-4 text-gray-600">
+              <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                 {record.otherEmployees ?? 0}
               </td>
 
-              <td className="px-6 py-4 text-gray-600">
+              <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                 {record.employeesTrained}
               </td>
 
-              <td className="px-6 py-4 text-gray-600">
+              <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                 {record.trainingHours}
               </td>
 
-              <td className="px-6 py-4 text-gray-600">
+              <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                 {record.safetyIncidents}
               </td>
 
-              <td className="px-6 py-4 text-gray-600">
+              <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                 {record.csrActivities}
               </td>
 
-              <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
+              <td className="px-6 py-4 text-gray-600 dark:text-gray-300 whitespace-nowrap">
                 {record.createdAt?.toDate
                   ? record.createdAt.toDate().toLocaleDateString()
                   : "—"}
@@ -1822,7 +1860,7 @@ useEffect(() => {
                   <button
                     type="button"
                     onClick={() => handleEdit(record)}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition"
                   >
                     <Pencil size={16} />
                     Edit
@@ -1837,7 +1875,7 @@ useEffect(() => {
                       setRecordToDelete(record);
                       setShowDeleteModal(true);
                     }}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/60 transition"
                   >
                     <Trash2 size={16} />
                     Delete
@@ -1879,15 +1917,15 @@ useEffect(() => {
 
             {/* Modal */}
 
-            <div className="relative bg-white w-full max-w-md mx-4 rounded-2xl shadow-2xl p-7">
+            <div className={`relative w-full max-w-md mx-4 rounded-2xl shadow-2xl p-7 border ${darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}>
 
               {/* Icon */}
 
-              <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+              <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/60 flex items-center justify-center mx-auto">
 
                 <Trash2
                   size={28}
-                  className="text-red-600"
+                  className="text-red-600 dark:text-red-300"
                 />
 
               </div>
@@ -1895,14 +1933,14 @@ useEffect(() => {
 
               {/* Title */}
 
-              <h2 className="text-xl font-bold text-gray-900 text-center mt-5">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white text-center mt-5">
                 Delete Social Record?
               </h2>
 
 
               {/* Description */}
 
-              <p className="text-gray-500 text-center mt-2 leading-relaxed">
+              <p className="text-gray-500 dark:text-gray-400 text-center mt-2 leading-relaxed">
                 Are you sure you want to delete this social record?
                 This action cannot be undone.
               </p>
@@ -1920,7 +1958,7 @@ useEffect(() => {
                     setShowDeleteModal(false);
                     setRecordToDelete(null);
                   }}
-                  className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition"
+                  className="px-5 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                 >
                   Cancel
                 </button>

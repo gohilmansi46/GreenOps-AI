@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import Sidebar from "../components/Sidebar";
+import { useTheme } from "../context/ThemeContext";
 
 import {
   collection,
@@ -16,11 +17,30 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 
 function Reports() {
+  const { darkMode } = useTheme();
 
   const [latestSocialRecord, setLatestSocialRecord] = useState(null);
   const [socialLoading, setSocialLoading] = useState(true);
   const [latestEnvironmentalRecord, setLatestEnvironmentalRecord] = useState(null);
- const [environmentalLoading, setEnvironmentalLoading] = useState(true);
+  const [environmentalLoading, setEnvironmentalLoading] = useState(true);
+  const [governanceAudits, setGovernanceAudits] = useState([]);
+  const [governanceCompliance, setGovernanceCompliance] = useState([]);
+  const [selectedFramework, setSelectedFramework] = useState("BRSR (SEBI Standard)");
+
+  useEffect(() => {
+    const fetchGovernanceData = async () => {
+      try {
+        const auditSnap = await getDocs(collection(db, "governanceAudits"));
+        setGovernanceAudits(auditSnap.docs.map((doc) => doc.data()));
+
+        const complianceSnap = await getDocs(collection(db, "governanceCompliance"));
+        setGovernanceCompliance(complianceSnap.docs.map((doc) => doc.data()));
+      } catch (error) {
+        console.error("Error fetching governance data for report:", error);
+      }
+    };
+    fetchGovernanceData();
+  }, []);
 
  // PDF FUNCTION
  const handleExportPDF = () => {
@@ -36,17 +56,16 @@ function Reports() {
   doc.setFont("helvetica", "bold");
 
   doc.text(
-    "GreenOps AI - ESG Sustainability Report",
+    `GreenOps AI - ESG Report [${selectedFramework}]`,
     20,
     20
   );
-
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
 
   doc.text(
-    `Generated on: ${new Date().toLocaleDateString()}`,
+    `Generated on: ${new Date().toLocaleDateString()} | Framework: ${selectedFramework}`,
     20,
     28
   );
@@ -220,13 +239,37 @@ function Reports() {
 
   }
 
+  // ==============================
+  // GOVERNANCE DATA
+  // ==============================
+
+  const governanceStartY =
+    doc.lastAutoTable
+      ? doc.lastAutoTable.finalY + 15
+      : socialStartY + 20;
+
+  doc.setFontSize(15);
+  doc.setFont("helvetica", "bold");
+  doc.text("Governance Overview", 20, governanceStartY);
+
+  autoTable(doc, {
+    startY: governanceStartY + 6,
+    head: [["Governance Metric", "Value"]],
+    body: [
+      ["Active Governance Audits", `${governanceAudits.length}`],
+      ["Tracked Compliance Requirements", `${governanceCompliance.length}`],
+    ],
+    theme: "grid",
+    headStyles: {
+      fillColor: [147, 51, 234],
+    },
+  });
 
   // ==============================
   // FOOTER
   // ==============================
 
-  const pageHeight =
-    doc.internal.pageSize.height;
+  const pageHeight = doc.internal.pageSize.height;
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
@@ -237,7 +280,6 @@ function Reports() {
     pageHeight - 10
   );
 
-
   // ==============================
   // SAVE
   // ==============================
@@ -245,7 +287,6 @@ function Reports() {
   doc.save("GreenOps_AI_ESG_Report.pdf");
 
 };
-
 
 const handleExportExcel = () => {
 
@@ -309,6 +350,18 @@ const handleExportExcel = () => {
       "Metric": "CSR Activities",
       "Value": latestSocialRecord?.csrActivities || 0,
       "Unit": "Activities",
+    },
+
+    {
+      "Metric": "Governance Audits",
+      "Value": governanceAudits.length,
+      "Unit": "Audits",
+    },
+
+    {
+      "Metric": "Compliance Requirements",
+      "Value": governanceCompliance.length,
+      "Unit": "Items",
     },
 
   ];
@@ -614,7 +667,7 @@ const overallESGScore =
     : 0;
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className={`flex min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
 
       {/* Sidebar */}
       <Sidebar />
@@ -623,24 +676,28 @@ const overallESGScore =
       <div className="flex-1 ml-64">
 
         {/* HEADER */}
-        <div className="fixed top-0 left-64 right-0 bg-white border-b border-gray-200 z-40">
+        <div className={`fixed top-0 left-64 right-0 border-b z-40 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
           <div className="px-10 py-6 flex justify-between items-center">
 
             <div>
 
-              <h1 className="text-4xl font-bold text-gray-900">
+              <h1 className={`text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
                 ESG Reports
               </h1>
 
-              <p className="mt-2 text-lg text-gray-500">
+              <p className={`mt-2 text-lg ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                 Generate sustainability reports, analytics and ESG summaries.
               </p>
 
             </div>
 
             {/* Live System */}
-            <div className="hidden md:flex items-center gap-3 bg-green-50 border border-green-300 px-5 py-2 rounded-full shadow-lg shadow-green-200/60">
+            <div className={`hidden md:flex items-center gap-3 px-5 py-2 rounded-full shadow-lg ${
+              darkMode
+                ? "bg-green-900/30 border border-green-700 text-green-400 shadow-green-900/20"
+                : "bg-green-50 border border-green-300 text-green-700 shadow-green-200/60"
+            }`}>
 
               <span className="relative flex h-3 w-3">
 
@@ -652,7 +709,7 @@ const overallESGScore =
 
               </span>
 
-              <span className="font-semibold text-green-700">
+              <span className="font-semibold">
                 Live System
               </span>
 
@@ -665,15 +722,45 @@ const overallESGScore =
         {/* PAGE CONTENT */}
         <div className="p-10 pt-40 space-y-8">
 
+          {/* FRAMEWORK SELECTOR CARD */}
+          <div className={`p-6 rounded-2xl shadow-sm border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
+            <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+              Select Regulatory Framework Standard for Report Export
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              {[
+                { id: "BRSR (SEBI Standard)", label: "🇮🇳 BRSR (SEBI Standard)" },
+                { id: "GRI Standards", label: "🌐 GRI (Global Reporting Initiative)" },
+                { id: "CSRD (EU Taxonomy)", label: "🇪🇺 CSRD (EU Standards)" },
+                { id: "TCFD Framework", label: "🌱 TCFD Climate Disclosures" },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedFramework(item.id)}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                    selectedFramework === item.id
+                      ? "bg-green-700 text-white shadow-md shadow-green-700/20 scale-105"
+                      : darkMode
+                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* ESG SUMMARY */}
 
 <div>
 
-  <h2 className="text-2xl font-bold text-gray-800">
+  <h2 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
     ESG Performance Overview
   </h2>
 
-  <p className="text-gray-500 mt-1">
+  <p className={`mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
     Summary of your organization's current sustainability performance.
   </p>
 
@@ -686,17 +773,17 @@ const overallESGScore =
 
   {/* Overall ESG Score */}
 
-  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+  <div className={`rounded-2xl border shadow-sm p-6 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
-    <p className="text-sm font-medium text-gray-500">
+    <p className={`text-sm font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
       Overall ESG Score
     </p>
 
-    <p className="text-3xl font-bold text-green-700 mt-2">
+    <p className={`text-3xl font-bold mt-2 ${darkMode ? "text-green-400" : "text-green-700"}`}>
   {overallESGScore}/100
 </p>
 
-    <p className="text-xs text-gray-400 mt-1">
+    <p className={`text-xs mt-1 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
       Out of 100
     </p>
 
@@ -705,19 +792,19 @@ const overallESGScore =
 
   {/* Environmental Score */}
 
-  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+  <div className={`rounded-2xl border shadow-sm p-6 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
-    <p className="text-sm font-medium text-gray-500">
+    <p className={`text-sm font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
       Environmental Score
     </p>
 
-    <p className="text-3xl font-bold text-green-600 mt-2">
+    <p className={`text-3xl font-bold mt-2 ${darkMode ? "text-green-400" : "text-green-600"}`}>
   {environmentalLoading
     ? "..."
     : `${environmentalScore}/100`}
 </p>
 
-    <p className="text-xs text-gray-400 mt-1">
+    <p className={`text-xs mt-1 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
       Environmental performance
     </p>
 
@@ -726,19 +813,19 @@ const overallESGScore =
 
   {/* Social Score */}
 
-  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+  <div className={`rounded-2xl border shadow-sm p-6 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
-    <p className="text-sm font-medium text-gray-500">
+    <p className={`text-sm font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
       Social Score
     </p>
 
-   <p className="text-3xl font-bold text-purple-600 mt-2">
+   <p className={`text-3xl font-bold mt-2 ${darkMode ? "text-purple-400" : "text-purple-600"}`}>
 
   {socialLoading ? "..." : `${socialScore}/100`}
 
 </p>
 
-    <p className="text-xs text-gray-400 mt-1">
+    <p className={`text-xs mt-1 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
       Social performance
     </p>
 
@@ -747,19 +834,19 @@ const overallESGScore =
 
   {/* Total Employees */}
 
-  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+  <div className={`rounded-2xl border shadow-sm p-6 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
-    <p className="text-sm font-medium text-gray-500">
+    <p className={`text-sm font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
       Total Employees
     </p>
 
-    <p className="text-3xl font-bold text-blue-600 mt-2">
+    <p className={`text-3xl font-bold mt-2 ${darkMode ? "text-blue-400" : "text-blue-600"}`}>
 
   {socialLoading ? "..." : totalEmployeesValue}
 
 </p>
 
-    <p className="text-xs text-gray-400 mt-1">
+    <p className={`text-xs mt-1 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
       Current workforce
     </p>
 
@@ -769,15 +856,15 @@ const overallESGScore =
 
 {/* ESG PERFORMANCE SUMMARY */}
 
-<div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+<div className={`rounded-2xl border shadow-sm p-8 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
   <div className="mb-6">
 
-    <h2 className="text-2xl font-bold text-gray-800">
+    <h2 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
       ESG Performance Summary
     </h2>
 
-    <p className="text-gray-500 mt-1">
+    <p className={`mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
       Key sustainability indicators based on the latest available ESG data.
     </p>
 
@@ -790,17 +877,17 @@ const overallESGScore =
 
     {/* Overall */}
 
-    <div className="bg-green-50 rounded-xl p-5">
+    <div className={`rounded-xl p-5 ${darkMode ? "bg-green-900/20 text-gray-300" : "bg-green-50 text-gray-500"}`}>
 
-      <p className="text-sm text-gray-500">
+      <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
         Overall ESG Score
       </p>
 
-      <p className="text-3xl font-bold text-green-700 mt-2">
+      <p className={`text-3xl font-bold mt-2 ${darkMode ? "text-green-400" : "text-green-700"}`}>
         {overallESGScore}/100
       </p>
 
-      <p className="text-xs text-gray-500 mt-1">
+      <p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
         Combined ESG performance
       </p>
 
@@ -809,17 +896,17 @@ const overallESGScore =
 
     {/* Environmental */}
 
-    <div className="bg-emerald-50 rounded-xl p-5">
+    <div className={`rounded-xl p-5 ${darkMode ? "bg-emerald-900/20 text-gray-300" : "bg-emerald-50 text-gray-500"}`}>
 
-      <p className="text-sm text-gray-500">
+      <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
         Environmental
       </p>
 
-      <p className="text-3xl font-bold text-emerald-700 mt-2">
+      <p className={`text-3xl font-bold mt-2 ${darkMode ? "text-emerald-400" : "text-emerald-700"}`}>
         {environmentalScore}/100
       </p>
 
-      <p className="text-xs text-gray-500 mt-1">
+      <p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
         Environmental performance
       </p>
 
@@ -828,17 +915,17 @@ const overallESGScore =
 
     {/* Social */}
 
-    <div className="bg-purple-50 rounded-xl p-5">
+    <div className={`rounded-xl p-5 ${darkMode ? "bg-purple-900/20 text-gray-300" : "bg-purple-50 text-gray-500"}`}>
 
-      <p className="text-sm text-gray-500">
+      <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
         Social
       </p>
 
-      <p className="text-3xl font-bold text-purple-700 mt-2">
+      <p className={`text-3xl font-bold mt-2 ${darkMode ? "text-purple-400" : "text-purple-700"}`}>
         {socialScore}/100
       </p>
 
-      <p className="text-xs text-gray-500 mt-1">
+      <p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
         Social performance
       </p>
 
@@ -853,9 +940,9 @@ const overallESGScore =
 
     {/* Environmental Data */}
 
-    <div className="border border-gray-200 rounded-xl p-5">
+    <div className={`border rounded-xl p-5 ${darkMode ? "border-gray-700 bg-gray-900/50" : "border-gray-200 bg-white"}`}>
 
-      <h3 className="text-lg font-semibold text-gray-800">
+      <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
         Latest Environmental Data
       </h3>
 
@@ -864,45 +951,45 @@ const overallESGScore =
         <div className="grid grid-cols-3 gap-4 mt-4">
 
           <div>
-            <p className="text-xs text-gray-500">
+            <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
               Carbon Emissions
             </p>
 
-            <p className="text-lg font-bold text-gray-800 mt-1">
+            <p className={`text-lg font-bold mt-1 ${darkMode ? "text-white" : "text-gray-800"}`}>
               {latestEnvironmentalRecord.carbon}
             </p>
 
-            <p className="text-xs text-gray-400">
+            <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
               tCO₂
             </p>
           </div>
 
 
           <div>
-            <p className="text-xs text-gray-500">
+            <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
               Energy Usage
             </p>
 
-            <p className="text-lg font-bold text-gray-800 mt-1">
+            <p className={`text-lg font-bold mt-1 ${darkMode ? "text-white" : "text-gray-800"}`}>
               {latestEnvironmentalRecord.energy}
             </p>
 
-            <p className="text-xs text-gray-400">
+            <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
               kWh
             </p>
           </div>
 
 
           <div>
-            <p className="text-xs text-gray-500">
+            <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
               Water Usage
             </p>
 
-            <p className="text-lg font-bold text-gray-800 mt-1">
+            <p className={`text-lg font-bold mt-1 ${darkMode ? "text-white" : "text-gray-800"}`}>
               {latestEnvironmentalRecord.water}
             </p>
 
-            <p className="text-xs text-gray-400">
+            <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
               Litres
             </p>
           </div>
@@ -911,7 +998,7 @@ const overallESGScore =
 
       ) : (
 
-        <p className="text-sm text-gray-400 mt-4">
+        <p className={`text-sm mt-4 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
           No environmental data available.
         </p>
 
@@ -922,9 +1009,9 @@ const overallESGScore =
 
     {/* Social Data */}
 
-    <div className="border border-gray-200 rounded-xl p-5">
+    <div className={`border rounded-xl p-5 ${darkMode ? "border-gray-700 bg-gray-900/50" : "border-gray-200 bg-white"}`}>
 
-      <h3 className="text-lg font-semibold text-gray-800">
+      <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
         Latest Social Data
       </h3>
 
@@ -933,44 +1020,44 @@ const overallESGScore =
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
 
           <div>
-            <p className="text-xs text-gray-500">
+            <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
               Employees
             </p>
 
-            <p className="text-lg font-bold text-gray-800 mt-1">
+            <p className={`text-lg font-bold mt-1 ${darkMode ? "text-white" : "text-gray-800"}`}>
               {latestSocialRecord.totalEmployees}
             </p>
           </div>
 
 
           <div>
-            <p className="text-xs text-gray-500">
+            <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
               Training Hours
             </p>
 
-            <p className="text-lg font-bold text-gray-800 mt-1">
+            <p className={`text-lg font-bold mt-1 ${darkMode ? "text-white" : "text-gray-800"}`}>
               {latestSocialRecord.trainingHours}
             </p>
           </div>
 
 
           <div>
-            <p className="text-xs text-gray-500">
+            <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
               Safety Incidents
             </p>
 
-            <p className="text-lg font-bold text-gray-800 mt-1">
+            <p className={`text-lg font-bold mt-1 ${darkMode ? "text-white" : "text-gray-800"}`}>
               {latestSocialRecord.safetyIncidents}
             </p>
           </div>
 
 
           <div>
-            <p className="text-xs text-gray-500">
+            <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
               CSR Activities
             </p>
 
-            <p className="text-lg font-bold text-gray-800 mt-1">
+            <p className={`text-lg font-bold mt-1 ${darkMode ? "text-white" : "text-gray-800"}`}>
               {latestSocialRecord.csrActivities}
             </p>
           </div>
@@ -979,7 +1066,7 @@ const overallESGScore =
 
       ) : (
 
-        <p className="text-sm text-gray-400 mt-4">
+        <p className={`text-sm mt-4 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
           No social data available.
         </p>
 
@@ -993,23 +1080,23 @@ const overallESGScore =
 
 {/* REPORT GENERATION */}
 
-<div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+<div className={`rounded-2xl border shadow-sm p-8 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
   <div className="flex items-center justify-between">
 
     <div>
 
-      <h2 className="text-2xl font-bold text-gray-800">
+      <h2 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
         Generate ESG Report
       </h2>
 
-      <p className="text-gray-500 mt-1">
+      <p className={`mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
         Create a sustainability report using the latest ESG data.
       </p>
 
     </div>
 
-    <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-xl bg-green-50">
+    <div className={`hidden md:flex items-center justify-center w-12 h-12 rounded-xl ${darkMode ? "bg-green-900/30" : "bg-green-50"}`}>
       <span className="text-2xl">
         📄
       </span>
@@ -1024,13 +1111,13 @@ const overallESGScore =
 
     {/* PDF Report */}
 
-    <div className="border border-gray-200 rounded-xl p-6">
+    <div className={`border rounded-xl p-6 ${darkMode ? "border-gray-700 bg-gray-900/50" : "border-gray-200 bg-white"}`}>
 
-      <h3 className="text-lg font-semibold text-gray-800">
+      <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
         ESG PDF Report
       </h3>
 
-      <p className="text-sm text-gray-500 mt-2">
+      <p className={`text-sm mt-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
         Generate a detailed PDF report containing ESG performance,
         sustainability metrics and key insights.
       </p>
@@ -1047,13 +1134,13 @@ const overallESGScore =
 
     {/* Excel Report */}
 
-    <div className="border border-gray-200 rounded-xl p-6">
+    <div className={`border rounded-xl p-6 ${darkMode ? "border-gray-700 bg-gray-900/50" : "border-gray-200 bg-white"}`}>
 
-      <h3 className="text-lg font-semibold text-gray-800">
+      <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
         ESG Excel Report
       </h3>
 
-      <p className="text-sm text-gray-500 mt-2">
+      <p className={`text-sm mt-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
         Export ESG records and performance data into an Excel
         spreadsheet for further analysis.
       </p>
@@ -1073,21 +1160,21 @@ const overallESGScore =
 
 {/* Latest ESG Data */}
 
-<div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+<div className={`rounded-2xl border shadow-sm p-8 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
   <div className="flex items-center justify-between">
 
     <div>
-      <h2 className="text-2xl font-bold text-gray-800">
+      <h2 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
         Latest ESG Data
       </h2>
 
-      <p className="text-gray-500 mt-1">
+      <p className={`mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
         Current availability of sustainability data across ESG categories.
       </p>
     </div>
 
-    <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center">
+    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${darkMode ? "bg-green-900/30" : "bg-green-50"}`}>
       <span className="text-2xl">
         📊
       </span>
@@ -1102,11 +1189,11 @@ const overallESGScore =
 
     {/* Environmental */}
 
-    <div className="border border-gray-200 rounded-xl p-5">
+    <div className={`border rounded-xl p-5 ${darkMode ? "border-gray-700 bg-gray-900/50" : "border-gray-200 bg-white"}`}>
 
       <div className="flex items-center justify-between">
 
-        <h3 className="font-semibold text-gray-800">
+        <h3 className={`font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
           Environmental
         </h3>
 
@@ -1122,8 +1209,8 @@ const overallESGScore =
 <p
   className={`text-sm font-medium mt-3 ${
     latestEnvironmentalRecord
-      ? "text-green-600"
-      : "text-gray-500"
+      ? "text-green-600 dark:text-green-400"
+      : "text-gray-500 dark:text-gray-400"
   }`}
 >
   {latestEnvironmentalRecord
@@ -1131,7 +1218,7 @@ const overallESGScore =
     : "No Data Available"}
 </p>
 
-<p className="text-xs text-gray-500 mt-1">
+<p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
   {latestEnvironmentalRecord
     ? "Latest environmental sustainability record is available."
     : "No environmental records have been submitted yet."}
@@ -1141,11 +1228,11 @@ const overallESGScore =
 
     {/* Social */}
 
-    <div className="border border-gray-200 rounded-xl p-5">
+    <div className={`border rounded-xl p-5 ${darkMode ? "border-gray-700 bg-gray-900/50" : "border-gray-200 bg-white"}`}>
 
       <div className="flex items-center justify-between">
 
-        <h3 className="font-semibold text-gray-800">
+        <h3 className={`font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
           Social
         </h3>
 
@@ -1162,8 +1249,8 @@ const overallESGScore =
    <p
   className={`text-sm font-medium mt-3 ${
     latestSocialRecord
-      ? "text-green-600"
-      : "text-gray-500"
+      ? "text-green-600 dark:text-green-400"
+      : "text-gray-500 dark:text-gray-400"
   }`}
 >
   {latestSocialRecord
@@ -1171,7 +1258,7 @@ const overallESGScore =
     : "No Data Available"}
 </p>
 
-<p className="text-xs text-gray-500 mt-1">
+<p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
   {latestSocialRecord
     ? "Latest social sustainability record is available."
     : "No social records have been submitted yet."}
@@ -1182,11 +1269,11 @@ const overallESGScore =
 
     {/* Governance */}
 
-    <div className="border border-gray-200 rounded-xl p-5">
+    <div className={`border rounded-xl p-5 ${darkMode ? "border-gray-700 bg-gray-900/50" : "border-gray-200 bg-white"}`}>
 
       <div className="flex items-center justify-between">
 
-        <h3 className="font-semibold text-gray-800">
+        <h3 className={`font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
           Governance
         </h3>
 
@@ -1194,11 +1281,11 @@ const overallESGScore =
 
       </div>
 
-      <p className="text-sm text-yellow-600 font-medium mt-3">
+      <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium mt-3">
         Coming Soon
       </p>
 
-      <p className="text-xs text-gray-500 mt-1">
+      <p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
         Governance reporting will be added in the next phase.
       </p>
 

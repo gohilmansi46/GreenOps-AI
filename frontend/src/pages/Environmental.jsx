@@ -25,8 +25,9 @@ import {
   Pencil,
   Trash2,
   Save,
-  Activity,
   Download,
+  TreePine,
+  Cloud,
 } from "lucide-react";
 
 function Environmental() {
@@ -34,28 +35,55 @@ function Environmental() {
   const [carbon, setCarbon] = useState("");
   const [energy, setEnergy] = useState("");
   const [water, setWater] = useState("");
+  const [scope, setScope] = useState("Scope 1 (Direct)");
+  const [carbonOffsets, setCarbonOffsets] = useState(50);
+  const [cloudServers, setCloudServers] = useState(12);
   const [records, setRecords] = useState([]);
   const [editId, setEditId] = useState(null);
   const [search, setSearch] = useState("");
+
   const fetchRecords = async () => {
-  try {
-    const q = query(
-      collection(db, "environmentalData"),
-      orderBy("createdAt", "desc")
-    );
-  const snapshot = await getDocs(q);
-  const data = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setRecords(data);
+    try {
+      const q = query(
+        collection(db, "environmentalData"),
+        orderBy("createdAt", "desc")
+      );
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setRecords(data);
     } catch (error) {
-    console.error("Error fetching records:", error);
+      console.error("Error fetching records:", error);
     }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadData = async () => {
+      try {
+        const q = query(
+          collection(db, "environmentalData"),
+          orderBy("createdAt", "desc")
+        );
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        if (isMounted) {
+          setRecords(data);
+        }
+      } catch (error) {
+        console.error("Error fetching records:", error);
+      }
     };
-    useEffect(() => {
-    fetchRecords();
-    }, []);
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
   const totalCarbon = records.reduce(
   (sum, item) => sum + Number(item.carbon || 0),
   0
@@ -98,43 +126,46 @@ const [recordToDelete, setRecordToDelete] = useState(null);
 };
   
   const handleEdit = (record) => {
-  setCarbon(record.carbon);
-  setEnergy(record.energy);
-  setWater(record.water);
-  setEditId(record.id);
+    setCarbon(record.carbon);
+    setEnergy(record.energy);
+    setWater(record.water);
+    setScope(record.scope || "Scope 1 (Direct)");
+    setEditId(record.id);
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth",
-  });
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
     try {
       if (editId) {
-    await updateDoc(doc(db, "environmentalData", editId), {
-      carbon: Number(carbon),
-      energy: Number(energy),
-      water: Number(water),
-    });
-    }
-    else {
-    await addDoc(collection(db, "environmentalData"), {
-      carbon: Number(carbon),
-      energy: Number(energy),
-      water: Number(water),
-      createdAt: new Date(),
-    });
-    }
+        await updateDoc(doc(db, "environmentalData", editId), {
+          carbon: Number(carbon),
+          energy: Number(energy),
+          water: Number(water),
+          scope: scope,
+        });
+      } else {
+        await addDoc(collection(db, "environmentalData"), {
+          carbon: Number(carbon),
+          energy: Number(energy),
+          water: Number(water),
+          scope: scope,
+          createdAt: new Date(),
+        });
+      }
       
-fetchRecords();
+      fetchRecords();
 
-setCarbon("");
-setEnergy("");
-setWater("");
-setEditId(null);
+      setCarbon("");
+      setEnergy("");
+      setWater("");
+      setScope("Scope 1 (Direct)");
+      setEditId(null);
 
 if (editId) {
   toast.success("Record updated successfully!");
@@ -454,7 +485,7 @@ return (
           {totalEnergy}
         </h2>
 
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-center justify-between mt-4">
 
   <span className={`text-sm ${
   darkMode ? "text-gray-400" : "text-gray-500"
@@ -462,8 +493,10 @@ return (
     kWh
   </span>
 
-  <span className="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-700">
-    ↑ 8%
+  <span
+    className={`text-xs font-semibold px-3 py-1 rounded-full ${getEnergyStatus().bg} ${getEnergyStatus().color}`}
+  >
+    {getEnergyStatus().text}
   </span>
 
 </div>
@@ -504,7 +537,7 @@ return (
           {totalWater}
         </h2>
 
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-center justify-between mt-4">
 
   <span className={`text-sm ${
   darkMode ? "text-gray-400" : "text-gray-500"
@@ -512,8 +545,10 @@ return (
     Litres
   </span>
 
-  <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-700">
-    ↓ 4%
+  <span
+    className={`text-xs font-semibold px-3 py-1 rounded-full ${getWaterStatus().bg} ${getWaterStatus().color}`}
+  >
+    {getWaterStatus().text}
   </span>
 
 </div>
@@ -578,6 +613,107 @@ return (
 
     </div>
 
+  </div>
+
+</div>
+
+{/* Carbon Offsets & Green IT Cloud Calculator Row */}
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 my-8">
+
+  {/* Carbon Offset & Net Zero Balance Ledger */}
+  <div className={`p-6 rounded-2xl border shadow-sm ${
+    darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+  }`}>
+    <div className="flex items-center justify-between border-b pb-4 mb-4 dark:border-gray-700">
+      <div className="flex items-center gap-3">
+        <div className="p-3 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 rounded-xl">
+          <TreePine size={24} />
+        </div>
+        <div>
+          <h3 className={`font-bold text-lg ${darkMode ? "text-white" : "text-gray-800"}`}>
+            Carbon Offset & Net Emissions Ledger
+          </h3>
+          <p className="text-xs text-gray-500">Gross Carbon - Purchased Credits = Net Emissions</p>
+        </div>
+      </div>
+      <span className="px-3 py-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 rounded-full text-xs font-bold">
+        Verified Credits
+      </span>
+    </div>
+
+    <div className="grid grid-cols-3 gap-4 text-center mb-5">
+      <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700">
+        <p className="text-xs text-gray-500">Gross Carbon</p>
+        <p className="text-xl font-bold text-red-600">{totalCarbon} tCO₂</p>
+      </div>
+      <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700">
+        <p className="text-xs text-gray-500">Offsets Claimed</p>
+        <p className="text-xl font-bold text-emerald-600">-{carbonOffsets} tCO₂</p>
+      </div>
+      <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950 border border-emerald-300">
+        <p className="text-xs text-emerald-700 dark:text-emerald-300 font-medium">Net Carbon</p>
+        <p className="text-xl font-bold text-emerald-700 dark:text-emerald-400">
+          {Math.max(0, totalCarbon - Number(carbonOffsets || 0))} tCO₂
+        </p>
+      </div>
+    </div>
+
+    <div className="flex items-center gap-3">
+      <label className="text-xs font-semibold text-gray-500">Update Carbon Credits (tCO₂):</label>
+      <input
+        type="number"
+        value={carbonOffsets}
+        onChange={(e) => setCarbonOffsets(e.target.value)}
+        className="w-24 px-3 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+      />
+    </div>
+  </div>
+
+  {/* Green IT & Cloud Compute Estimator */}
+  <div className={`p-6 rounded-2xl border shadow-sm ${
+    darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+  }`}>
+    <div className="flex items-center justify-between border-b pb-4 mb-4 dark:border-gray-700">
+      <div className="flex items-center gap-3">
+        <div className="p-3 bg-blue-100 dark:bg-blue-950 text-blue-600 rounded-xl">
+          <Cloud size={24} />
+        </div>
+        <div>
+          <h3 className={`font-bold text-lg ${darkMode ? "text-white" : "text-gray-800"}`}>
+            Green IT & Cloud Infrastructure Footprint
+          </h3>
+          <p className="text-xs text-gray-500">Estimate CO₂ footprint of Cloud Workloads & Servers</p>
+        </div>
+      </div>
+      <span className="px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-xs font-bold">
+        Green IT
+      </span>
+    </div>
+
+    <div className="flex items-center justify-between mb-4">
+      <div>
+        <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+          Active Virtual Servers / Cloud Nodes:
+        </label>
+        <p className="text-xs text-gray-400">AWS / GCP / Azure VM count</p>
+      </div>
+      <input
+        type="number"
+        value={cloudServers}
+        onChange={(e) => setCloudServers(e.target.value)}
+        className="w-24 px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white font-bold"
+      />
+    </div>
+
+    <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 flex items-center justify-between">
+      <div>
+        <p className="text-xs font-bold text-blue-900 dark:text-blue-300">Estimated Cloud Carbon Footprint</p>
+        <p className="text-xs text-blue-600 dark:text-blue-400">Based on standard ~2.4 tCO₂ per node/year</p>
+      </div>
+      <span className="text-2xl font-extrabold text-blue-700 dark:text-blue-300">
+        {Math.round(Number(cloudServers || 0) * 2.4)} <span className="text-xs font-normal">tCO₂/yr</span>
+      </span>
+    </div>
   </div>
 
 </div>
@@ -688,31 +824,61 @@ return (
 
     </div>
 
-    {/* Water */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Water */}
 
-    <div>
+      <div>
 
-      <label  
-       className={`block text-sm font-semibold mb-2 ${
-    darkMode ? "text-gray-200" : "text-gray-700"
-  }`}
->
-        Water Consumption (Litres)
-      </label>
+        <label  
+         className={`block text-sm font-semibold mb-2 ${
+      darkMode ? "text-gray-200" : "text-gray-700"
+    }`}
+  >
+          Water Consumption (Litres)
+        </label>
 
-      <input
-        type="number"
-        value={water}
-        onChange={(e) => setWater(e.target.value)}
-        placeholder="e.g. 6500"
-        className={`w-full rounded-xl border px-4 py-3 outline-none transition ${
-  darkMode
-    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-    : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
-} focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-        required
-      />
+        <input
+          type="number"
+          value={water}
+          onChange={(e) => setWater(e.target.value)}
+          placeholder="e.g. 6500"
+          className={`w-full rounded-xl border px-4 py-3 outline-none transition ${
+    darkMode
+      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+      : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+  } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+          required
+        />
 
+      </div>
+
+      {/* Scope */}
+
+      <div>
+
+        <label  
+         className={`block text-sm font-semibold mb-2 ${
+      darkMode ? "text-gray-200" : "text-gray-700"
+    }`}
+  >
+          GHG Protocol Scope
+        </label>
+
+        <select
+          value={scope}
+          onChange={(e) => setScope(e.target.value)}
+          className={`w-full rounded-xl border px-4 py-3 outline-none transition ${
+    darkMode
+      ? "bg-gray-700 border-gray-600 text-white"
+      : "bg-white border-gray-300 text-gray-900"
+  } focus:ring-2 focus:ring-green-500 focus:border-green-500`}
+        >
+          <option value="Scope 1 (Direct)">Scope 1 (Direct Fuel & Fleet)</option>
+          <option value="Scope 2 (Electricity)">Scope 2 (Purchased Power)</option>
+          <option value="Scope 3 (Supply Chain)">Scope 3 (Supply Chain & Travel)</option>
+        </select>
+
+      </div>
     </div>
 
     {/* Button */}
@@ -862,6 +1028,14 @@ return (
     darkMode ? "text-gray-200" : "text-gray-700"
   }`}
 >
+  GHG Scope
+</th>
+
+<th
+  className={`px-6 py-4 text-left text-sm font-semibold ${
+    darkMode ? "text-gray-200" : "text-gray-700"
+  }`}
+>
   Date
 </th>
 
@@ -919,6 +1093,12 @@ return (
   {record.water}
   </td>
 
+ <td className="px-6 py-4">
+   <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
+     {record.scope || "Scope 1 (Direct)"}
+   </span>
+ </td>
+
  <td
   className={`px-6 py-4 ${
     darkMode ? "text-gray-200" : "text-gray-700"
@@ -956,7 +1136,7 @@ return (
         ))
   ) : (
     <tr>
-      <td colSpan="5" className="py-16 text-center">
+      <td colSpan="7" className="py-16 text-center">
         <div className="flex flex-col items-center">
           <Database
   size={50}

@@ -1,30 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 function GovernanceAuditModal({ onClose, onSave, audit }) {
-  const [auditName, setAuditName] = useState("");
-  const [auditType, setAuditType] = useState("");
-  const [auditOwner, setAuditOwner] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [targetDate, setTargetDate] = useState("");
-  const [status, setStatus] = useState("Planned");
-
-  useEffect(() => {
-  if (audit) {
-    setAuditName(audit.auditName || "");
-    setAuditType(audit.auditType || "");
-    setAuditOwner(audit.auditOwner || "");
-    setStartDate(audit.startDate || "");
-    setTargetDate(audit.targetDate || "");
-    setStatus(audit.status || "Planned");
-  } else {
-    setAuditName("");
-    setAuditType("");
-    setAuditOwner("");
-    setStartDate("");
-    setTargetDate("");
-    setStatus("Planned");
-  }
-}, [audit]);
+  const [auditName, setAuditName] = useState(audit?.auditName || "");
+  const [auditType, setAuditType] = useState(audit?.auditType || "");
+  const [auditOwner, setAuditOwner] = useState(audit?.auditOwner || "");
+  const [startDate, setStartDate] = useState(audit?.startDate || "");
+  const [targetDate, setTargetDate] = useState(audit?.targetDate || "");
+  const [status, setStatus] = useState(audit?.status || "Planned");
 
   const handleSave = () => {
     if (!auditName.trim()) {
@@ -53,21 +35,21 @@ function GovernanceAuditModal({ onClose, onSave, audit }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-      <div className="w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs px-4 py-6">
+      <div className="w-full max-w-2xl max-h-[90vh] bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-transparent dark:border-gray-700">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-7 py-5 border-b border-gray-200">
+        <div className="flex items-center justify-between px-7 py-5 border-b border-gray-200 dark:border-gray-700 shrink-0">
           <div>
-            <p className="text-sm font-semibold text-green-600 uppercase tracking-wide">
+            <p className="text-sm font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide">
               Governance
             </p>
 
-            <h2 className="text-2xl font-bold text-gray-900 mt-1">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
               {audit ? "Edit Audit" : "Start New Audit"}
             </h2>
 
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Create an audit and assign responsibility for its completion.
             </p>
           </div>
@@ -75,7 +57,7 @@ function GovernanceAuditModal({ onClose, onSave, audit }) {
           <button
             type="button"
             onClick={onClose}
-            className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-xl flex items-center justify-center"
+            className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 text-xl flex items-center justify-center"
           >
             ×
           </button>
@@ -87,7 +69,7 @@ function GovernanceAuditModal({ onClose, onSave, audit }) {
 
             {/* Audit Name */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Audit Name
               </label>
 
@@ -96,20 +78,20 @@ function GovernanceAuditModal({ onClose, onSave, audit }) {
                 value={auditName}
                 onChange={(e) => setAuditName(e.target.value)}
                 placeholder="e.g. Annual Governance Audit"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               />
             </div>
 
             {/* Audit Type */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Audit Type
               </label>
 
               <select
                 value={auditType}
                 onChange={(e) => setAuditType(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               >
                 <option value="" disabled>
                   Select audit type
@@ -139,7 +121,7 @@ function GovernanceAuditModal({ onClose, onSave, audit }) {
 
             {/* Owner */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Audit Owner
               </label>
 
@@ -148,7 +130,7 @@ function GovernanceAuditModal({ onClose, onSave, audit }) {
                 value={auditOwner}
                 onChange={(e) => setAuditOwner(e.target.value)}
                 placeholder="e.g. Internal Audit Manager"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               />
             </div>
 
@@ -156,7 +138,7 @@ function GovernanceAuditModal({ onClose, onSave, audit }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Start Date
                 </label>
 
@@ -164,12 +146,12 @@ function GovernanceAuditModal({ onClose, onSave, audit }) {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Target Date
                 </label>
 
@@ -177,7 +159,7 @@ function GovernanceAuditModal({ onClose, onSave, audit }) {
                   type="date"
                   value={targetDate}
                   onChange={(e) => setTargetDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                 />
               </div>
 
@@ -185,14 +167,14 @@ function GovernanceAuditModal({ onClose, onSave, audit }) {
 
             {/* Status */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Status
               </label>
 
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               >
                 <option value="Planned">
                   Planned
@@ -216,12 +198,12 @@ function GovernanceAuditModal({ onClose, onSave, audit }) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 px-7 py-5 border-t border-gray-200 bg-white">
+        <div className="flex justify-end gap-3 px-7 py-5 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shrink-0">
 
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-3 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition"
+            className="px-5 py-3 border border-gray-300 dark:border-gray-600 rounded-xl font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
           >
             Cancel
           </button>

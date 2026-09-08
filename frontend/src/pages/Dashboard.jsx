@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { signOutUser } from "../services/authService";
+import { auth, signOutUser } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import { useTheme } from "../context/ThemeContext";
@@ -23,7 +23,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from "recharts";
 
 import {
@@ -36,10 +35,7 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
   FaInfoCircle,
-  FaBullseye,
   FaBell,
-  FaMoon,
-  FaSun,
 } from "react-icons/fa";
 
 import {
@@ -47,21 +43,6 @@ import {
   FaSeedling,
   FaArrowTrendUp,
 } from "react-icons/fa6";
-
-const emissionsData = [
-  { month: "Jan", emissions: 120 },
-  { month: "Feb", emissions: 110 },
-  { month: "Mar", emissions: 105 },
-  { month: "Apr", emissions: 95 },
-  { month: "May", emissions: 90 },
-  { month: "Jun", emissions: 80 },
-];
-
-const esgData = [
-  { name: "Environmental", value: 40 },
-  { name: "Social", value: 25 },
-  { name: "Governance", value: 35 },
-];
 
 const COLORS = ["#16a34a", "#2563eb", "#9333ea"];
 const CustomTooltip = ({ active, payload, label }) => {
@@ -111,12 +92,15 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 function Dashboard() {
-  const { darkMode, setDarkMode } = useTheme();
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const [latestData, setLatestData] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [hiddenNotifications, setHiddenNotifications] = useState([]);
+  const [facility, setFacility] = useState("All Facilities");
+  const [socialScore, setSocialScore] = useState(85);
+  const [governanceScore, setGovernanceScore] = useState(86);
   const notificationRef = useRef(null);
   const getGreeting = () => {
   const hour = new Date().getHours();
@@ -126,32 +110,7 @@ function Dashboard() {
   return "Good Evening 🌙";
 };
   
-useEffect(() => {
-  fetchLatestData();
-  fetchChartData();
-}, []);
-
-useEffect(() => {
-  function handleClickOutside(event) {
-    if (
-      notificationRef.current &&
-      !notificationRef.current.contains(event.target)
-    ) {
-      setShowNotifications(false);
-    }
-  }
-
-  document.addEventListener("mousedown", handleClickOutside);
-
-  return () => {
-    document.removeEventListener(
-      "mousedown",
-      handleClickOutside
-    );
-  };
-}, []);
-
-const fetchLatestData = async () => {
+  const fetchLatestData = async () => {
     try {
       const q = query(
         collection(db, "environmentalData"),
@@ -170,29 +129,99 @@ const fetchLatestData = async () => {
   };
 
   const fetchChartData = async () => {
-  try {
-    const q = query(
-      collection(db, "environmentalData"),
-      orderBy("createdAt", "asc")
-    );
+    try {
+      const q = query(
+        collection(db, "environmentalData"),
+        orderBy("createdAt", "asc")
+      );
 
-    const snapshot = await getDocs(q);
+      const snapshot = await getDocs(q);
 
-    const data = snapshot.docs.map((doc) => ({
-  month: doc.data().createdAt.toDate().toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-  }),
-  emissions: doc.data().carbon,
-  energy: doc.data().energy,
-  water: doc.data().water,
-}));
+      const data = snapshot.docs.map((doc) => ({
+        month: doc.data().createdAt.toDate().toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+        }),
+        emissions: doc.data().carbon,
+        energy: doc.data().energy,
+        water: doc.data().water,
+      }));
 
-    setChartData(data);
-  } catch (error) {
-    console.error("Error fetching chart data:", error);
-  }
-};
+      setChartData(data);
+    } catch (error) {
+      console.error("Error fetching chart data:", error);
+    }
+  };
+
+  const fetchSocialScore = async () => {
+    try {
+      const q = query(collection(db, "socialData"), orderBy("createdAt", "desc"), limit(1));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const rec = snap.docs[0].data();
+        const avgTraining = rec.employeesTrained > 0 ? (rec.trainingHours / rec.employeesTrained) : 0;
+        const tScore = Math.min(25, Math.round((avgTraining / 5) * 25));
+        const sScore = Math.max(0, 25 - (rec.safetyIncidents || 0) * 5);
+        const cScore = Math.min(25, (rec.csrActivities || 0) * 2);
+        setSocialScore(Math.min(100, 25 + tScore + sScore + cScore));
+      }
+    } catch (err) {
+      console.error("Error fetching social score:", err);
+    }
+  };
+
+  const fetchGovernanceScore = async () => {
+    try {
+      const snap = await getDocs(collection(db, "governanceCompliance"));
+      if (!snap.empty) {
+        const docs = snap.docs.map((d) => d.data());
+        const compliantCount = docs.filter((d) => d.status === "Compliant").length;
+        setGovernanceScore(Math.round((compliantCount / docs.length) * 100));
+      }
+    } catch (err) {
+      console.error("Error fetching governance score:", err);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadDashboardData = async () => {
+      try {
+        await Promise.all([
+          fetchLatestData(),
+          fetchChartData(),
+          fetchSocialScore(),
+          fetchGovernanceScore(),
+        ]);
+      } catch (err) {
+        if (isMounted) console.error("Error loading dashboard data:", err);
+      }
+    };
+    loadDashboardData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
+        setShowNotifications(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, []);
 
 const calculateESGScore = () => {
   if (!latestData) return 0;
@@ -389,6 +418,22 @@ const getNotifications = () => {
   {/* Right Side */}
   <div className="flex items-center gap-5 relative">
 
+    {/* Facility Switcher */}
+    <select
+      value={facility}
+      onChange={(e) => setFacility(e.target.value)}
+      className={`hidden lg:block px-4 py-2 rounded-full text-xs font-bold border transition ${
+        darkMode
+          ? "bg-gray-700 border-gray-600 text-green-400"
+          : "bg-green-50 border-green-300 text-green-800"
+      }`}
+    >
+      <option value="All Facilities">🏢 All Facilities</option>
+      <option value="Corporate HQ">🏢 Corporate HQ</option>
+      <option value="Manufacturing Facility A">🏭 Manufacturing Plant A</option>
+      <option value="R&D Hub">🔬 R&D Hub</option>
+    </select>
+
     {/* Live Status */}
 <div className="hidden md:flex items-center gap-3 bg-green-50 border border-green-300 px-5 py-2 rounded-full shadow-lg shadow-green-200/60">
 
@@ -405,15 +450,12 @@ const getNotifications = () => {
 
     {/* Welcome */}
     <div className="text-right">
-
       <p className="text-sm text-gray-500">
         {getGreeting()}
       </p>
-
-      <p className="font-semibold text-gray-700">
-        ESG Manager
+      <p className="font-semibold text-gray-700 dark:text-gray-200 text-xs sm:text-sm truncate max-w-[180px]">
+        {auth.currentUser?.displayName || auth.currentUser?.email || "ESG Manager"}
       </p>
-
     </div>
 
 <div
@@ -421,176 +463,150 @@ const getNotifications = () => {
   ref={notificationRef}
 >
   <button
-    onClick={() => setShowNotifications(!showNotifications)}
-className={`relative p-3 rounded-full transition-all duration-300 ${
-  darkMode
-    ? "bg-gray-700 hover:bg-gray-600"
-    : "bg-gray-100 hover:bg-gray-200"
-} ${
-  getNotifications().length > 0 && !showNotifications
-    ? "animate-pulse"
-    : ""
-}`}  >
-    <FaBell
-  className={`text-xl ${
-    darkMode ? "text-white" : "text-gray-700"
-  }`}
-/>
+    type="button"
+    onClick={() => setShowNotifications((prev) => !prev)}
+    aria-label="Notifications"
+    className={`relative p-3 rounded-full transition-all duration-300 cursor-pointer ${
+      darkMode
+        ? "bg-gray-700 hover:bg-gray-600 text-white"
+        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+    } ${
+      getNotifications().length > 0 && !showNotifications
+        ? "ring-2 ring-green-500/50"
+        : ""
+    }`}
+  >
+    <FaBell className="text-xl" />
 
     {getNotifications().length > 0 && (
-  <span
-    className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center animate-bounce"
-  >
-    {getNotifications().length}
-  </span>
-)}
-      {showNotifications && (
-  <div className={`absolute right-0 mt-3 w-96 rounded-2xl shadow-2xl border z-50 overflow-hidden transition-all duration-300 ${
-  darkMode
-    ? "bg-gray-800 border-gray-700"
-    : "bg-white border-gray-200"
-}`}>
-
-    {/* Header */}
-    <div
-  className={`flex justify-between items-center px-5 py-4 border-b ${
-    darkMode ? "border-gray-700" : "border-gray-200"
-  }`}
->
-      <h3
-  className={`font-bold text-lg ${
-    darkMode ? "text-white" : "text-gray-900"
-  }`}
->
-        Notifications
-      </h3>
-
-      <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-semibold">
-        {getNotifications().length} New
+      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center shadow-sm animate-bounce">
+        {getNotifications().length}
       </span>
-    </div>
-
-    {getNotifications().map((notification) => {
-
-  let Icon = FaInfoCircle;
-  let iconColor = "text-blue-500";
-
-  if (notification.type === "success") {
-    Icon = FaCheckCircle;
-    iconColor = "text-green-500";
-  }
-
-  if (notification.type === "warning") {
-    Icon = FaExclamationTriangle;
-    iconColor = "text-yellow-500";
-  }
-
-  if (notification.type === "danger") {
-    Icon = FaExclamationTriangle;
-    iconColor = "text-red-500";
-  }
-
-  return (
-    <div
-      key={notification.id}
-      className={`px-5 py-4 transition border-b ${
-  darkMode
-    ? "hover:bg-gray-700 border-gray-700"
-    : "hover:bg-gray-50 border-gray-200"
-}`}
-    >
-
-      <div className="flex justify-between items-start">
-
-        <div className="flex gap-3">
-
-          <Icon className={`${iconColor} mt-1`} />
-
-          <div>
-
-            <h4 className={`font-semibold ${
-  darkMode ? "text-white" : "text-gray-800"
-}`}>
-              {notification.title}
-            </h4>
-
-            <p className={`text-sm mt-1 ${
-  darkMode ? "text-gray-300" : "text-gray-600"
-}`}>
-              {notification.message}
-            </p>
-
-            <p className={`text-xs mt-2 ${
-  darkMode ? "text-gray-500" : "text-gray-400"
-}`}>
-              {getTimeAgo(notification.createdAt)}
-            </p>
-
-          </div>
-
-        </div>
-
-<button
-  onClick={(e) => {
-    e.stopPropagation();
-
-    setHiddenNotifications((prev) => [
-      ...prev,
-      notification.id,
-    ]);
-  }}
-  className="text-red-500 hover:text-red-700 text-sm font-medium"
->
-  Delete
-</button>
-
-      </div>
-
-    </div>
-  );
-
-})}
-
-    {/* Footer */}
-    <div className={`border-t px-5 py-3 text-center ${
-  darkMode
-    ? "bg-gray-900 border-gray-700"
-    : "bg-gray-50 border-gray-200"
-}`}>
-     <button
-  onClick={() => navigate("/environmental")}
-  className={`font-semibold hover:underline ${
-  darkMode
-    ? "text-green-400"
-    : "text-green-700"
-}`}
->
-  View All Notifications
-</button>
-
-    </div>
-
-  </div>
-)}
+    )}
   </button>
 
+  {showNotifications && (
+    <div
+      className={`absolute right-0 mt-3 w-96 rounded-2xl shadow-2xl border z-50 overflow-hidden transition-all duration-300 ${
+        darkMode
+          ? "bg-gray-800 border-gray-700 text-white"
+          : "bg-white border-gray-200 text-gray-900"
+      }`}
+    >
+      {/* Header */}
+      <div className={`flex justify-between items-center px-5 py-4 border-b ${darkMode ? "border-gray-700 bg-gray-800/80" : "border-gray-100 bg-gray-50/50"}`}>
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold text-base">Notifications</h3>
+          {getNotifications().length > 0 && (
+            <span className="bg-green-100 dark:bg-green-950/60 text-green-700 dark:text-green-300 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+              {getNotifications().length} New
+            </span>
+          )}
+        </div>
+
+        {getNotifications().length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              const allIds = getNotifications().map((n) => n.id);
+              setHiddenNotifications((prev) => [...prev, ...allIds]);
+            }}
+            className="text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition cursor-pointer"
+          >
+            Clear All
+          </button>
+        )}
+      </div>
+
+      {/* List / Empty State */}
+      <div className="max-h-[380px] overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700/60">
+        {getNotifications().length === 0 ? (
+          <div className="p-8 text-center">
+            <div className="w-12 h-12 rounded-full bg-green-50 dark:bg-green-950/50 text-green-600 dark:text-green-400 flex items-center justify-center mx-auto mb-3">
+              <FaCheckCircle className="text-xl" />
+            </div>
+            <p className="font-semibold text-sm">All caught up!</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              No active alerts or unread ESG notifications.
+            </p>
+          </div>
+        ) : (
+          getNotifications().map((notification) => {
+            let Icon = FaInfoCircle;
+            let iconBg = "bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300";
+
+            if (notification.type === "success") {
+              Icon = FaCheckCircle;
+              iconBg = "bg-green-50 dark:bg-green-950/60 text-green-600 dark:text-green-300";
+            } else if (notification.type === "warning") {
+              Icon = FaExclamationTriangle;
+              iconBg = "bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300";
+            } else if (notification.type === "danger") {
+              Icon = FaExclamationTriangle;
+              iconBg = "bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-300";
+            }
+
+            return (
+              <div
+                key={notification.id}
+                className={`p-4 flex items-start justify-between gap-3 transition ${
+                  darkMode ? "hover:bg-gray-700/50" : "hover:bg-gray-50"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}>
+                    <Icon className="text-base" />
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-sm leading-snug">
+                      {notification.title}
+                    </h4>
+
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
+                      {notification.message}
+                    </p>
+
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
+                      {getTimeAgo(notification.createdAt)}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHiddenNotifications((prev) => [...prev, notification.id]);
+                  }}
+                  className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 text-sm p-1 transition cursor-pointer"
+                  title="Dismiss notification"
+                >
+                  ✕
+                </button>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className={`border-t px-5 py-3 text-center ${darkMode ? "bg-gray-900/60 border-gray-700" : "bg-gray-50/80 border-gray-100"}`}>
+        <button
+          type="button"
+          onClick={() => {
+            setShowNotifications(false);
+            navigate("/reports");
+          }}
+          className="text-xs font-bold text-green-600 dark:text-green-400 hover:underline transition cursor-pointer"
+        >
+          View All Sustainability Reports →
+        </button>
+      </div>
+    </div>
+  )}
 </div>
 
-    {/* Theme Toggle */}
-<button
-  onClick={() => setDarkMode(!darkMode)}
-  className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
-    darkMode
-      ? "bg-gray-700 hover:bg-gray-600"
-      : "bg-gray-100 hover:bg-gray-200"
-  }`}
->
-  {darkMode ? (
-    <FaSun className="text-yellow-400 text-lg" />
-  ) : (
-    <FaMoon className="text-white-700 text-lg" />
-  )}
-</button>
+
 
 {/* Logout Button */}
 <button
@@ -717,7 +733,14 @@ className={`relative p-3 rounded-full transition-all duration-300 ${
         </h3>
 
         <p className="text-xl font-bold text-purple-500 mt-1">
-          +12%
+          {(() => {
+            if (chartData.length < 2) return "+12%";
+            const current = chartData[chartData.length - 1]?.emissions || 0;
+            const prev = chartData[chartData.length - 2]?.emissions || 0;
+            if (prev === 0) return "+0%";
+            const pct = Math.round(((current - prev) / prev) * 100);
+            return pct >= 0 ? `+${pct}%` : `${pct}%`;
+          })()}
         </p>
 
         <p className="text-xs text-purple-500 mt-1">
@@ -736,6 +759,56 @@ className={`relative p-3 rounded-full transition-all duration-300 ${
   </div>
 
 </div>  
+
+{/* Net-Zero Target Progress Banner */}
+<div
+  className={`mb-8 p-6 rounded-2xl shadow-lg border relative overflow-hidden transition-all duration-300 ${
+    darkMode
+      ? "bg-gradient-to-r from-emerald-950 via-gray-800 to-gray-800 border-emerald-800/50"
+      : "bg-gradient-to-r from-green-50 via-emerald-50 to-white border-green-200"
+  }`}
+>
+  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <span className="bg-emerald-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+          Target Milestone
+        </span>
+        <span className={darkMode ? "text-gray-400 text-xs" : "text-gray-500 text-xs"}>
+          Facility: <strong className="text-emerald-600">{facility}</strong>
+        </span>
+      </div>
+      <h3 className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
+        Net-Zero Emissions Pathway 2030
+      </h3>
+      <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+        Corporate goal: Reduce total operational carbon emissions below <strong className="text-green-600">300 tCO₂</strong> by 2030.
+      </p>
+    </div>
+
+    <div className="w-full md:w-72 flex flex-col gap-2">
+      <div className="flex justify-between items-center text-xs font-semibold">
+        <span className={darkMode ? "text-gray-300" : "text-gray-700"}>Current Level</span>
+        <span className="text-emerald-600 font-bold">
+          {latestData ? `${latestData.carbon} / 300 tCO₂` : "0 / 300 tCO₂"}
+        </span>
+      </div>
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+        <div
+          className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${Math.min(100, Math.max(10, latestData ? Math.round((latestData.carbon / 300) * 100) : 40))}%`,
+          }}
+        ></div>
+      </div>
+      <p className="text-[11px] text-right text-gray-500">
+        {latestData && latestData.carbon <= 300
+          ? "🎉 On Track to Net-Zero Target!"
+          : "⚠️ Requires emission reduction strategies"}
+      </p>
+    </div>
+  </div>
+</div>
 
 {/* KPI Cards */}
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -1046,17 +1119,21 @@ className={`relative p-3 rounded-full transition-all duration-300 ${
               <ResponsiveContainer width="100%" height={350}>
                 <PieChart>
                   <Pie
-                    data={esgData}
+                    data={[
+                      { name: "Environmental", value: calculateESGScore() },
+                      { name: "Social", value: socialScore },
+                      { name: "Governance", value: governanceScore },
+                    ]}
                     cx="50%"
                     cy="50%"
                     outerRadius={130}
                     dataKey="value"
                     label
                   >
-                    {esgData.map((entry, index) => (
+                    {COLORS.map((color, index) => (
                       <Cell
-                        key={index}
-                        fill={COLORS[index]}
+                        key={`cell-${index}`}
+                        fill={color}
                       />
                     ))}
                   </Pie>
@@ -1319,7 +1396,7 @@ className={`relative p-3 rounded-full transition-all duration-300 ${
     darkMode ? "text-gray-200" : "text-gray-700"
   }`}
 >
-            {insight.replace(/[⚠✅🏆🟡⚡💧]/g, "")}
+            {insight.replace(/[⚠✅🏆🟡⚡💧]/gu, "")}
           </p>
 
         </div>
@@ -1365,15 +1442,4 @@ const getTimeAgo = (date) => {
   return `${days} days ago`;
 };
 
-const getNotifications = () => {
-  if (!latestData) {
-    return [
-      {
-        type: "info",
-        message: "Loading latest environmental data...",
-      },
-    ];
-  }
-  return notifications;
-};
 export default Dashboard;
