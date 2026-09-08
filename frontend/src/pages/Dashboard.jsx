@@ -223,7 +223,7 @@ function Dashboard() {
     };
   }, []);
 
-const calculateESGScore = () => {
+const calculateEnvironmentalScore = () => {
   if (!latestData) return 0;
 
   let score = 100;
@@ -244,6 +244,11 @@ const calculateESGScore = () => {
   else if (latestData.water > 3000) score -= 5;
 
   return Math.max(score, 0);
+};
+
+const calculateOverallESGScore = () => {
+  const envScore = calculateEnvironmentalScore();
+  return Math.round((envScore + socialScore + governanceScore) / 3);
 };
 
 const getCarbonStatus = () => {
@@ -271,8 +276,8 @@ const getWaterStatus = () => {
   return "🔴 High Usage";
 };
 
-const getESGStatus = () => {
-  const score = calculateESGScore();
+const getEnvironmentalStatus = () => {
+  const score = calculateEnvironmentalScore();
 
   if (score >= 90) return "🏆 Excellent";
   if (score >= 75) return "🟢 Good";
@@ -310,15 +315,15 @@ const getAIInsights = () => {
     insights.push("✅ Water consumption is efficient.");
   }
 
-  // ESG Score
-  const score = calculateESGScore();
+  // Environmental Score
+  const envScore = calculateEnvironmentalScore();
 
-  if (score >= 90) {
-    insights.push("🏆 Excellent ESG performance.");
-  } else if (score >= 75) {
-    insights.push("✅ Good ESG performance with improvement opportunities.");
+  if (envScore >= 90) {
+    insights.push("🏆 Excellent Environmental performance.");
+  } else if (envScore >= 75) {
+    insights.push("✅ Good Environmental performance with improvement opportunities.");
   } else {
-    insights.push("⚠️ ESG performance needs improvement.");
+    insights.push("⚠️ Environmental performance needs improvement.");
   }
 
   return insights;
@@ -367,16 +372,16 @@ const getNotifications = () => {
 });
   }
 
-  const score = calculateESGScore();
+  const envScore = calculateEnvironmentalScore();
 
   notifications.push({
   id: 4,
-  type: score >= 80 ? "success" : "info",
-  title: "ESG Score",
+  type: envScore >= 80 ? "success" : "info",
+  title: "Environmental Score",
   message:
-    score >= 80
-      ? `Excellent ESG Performance (${score}/100)`
-      : `Current ESG Score: ${score}/100`,
+    envScore >= 80
+      ? `Excellent Environmental Performance (${envScore}/100)`
+      : `Current Environmental Score: ${envScore}/100`,
   createdAt: latestData.createdAt,
 });
 
@@ -702,7 +707,7 @@ const getNotifications = () => {
         </h3>
 
         <p className="text-xl font-bold text-emerald-500 mt-1">
-          {calculateESGScore() >= 75 ? "Good" : "Needs Improvement"}
+          {calculateOverallESGScore() >= 75 ? "Good" : "Needs Improvement"}
         </p>
 
         <p className="text-xs text-emerald-500 mt-1">
@@ -906,7 +911,7 @@ const getNotifications = () => {
 </div>
 
   <div
-  className={`rounded-2xl shadow-lg p-6 border-l-4 border-green-600 hover:shadow-2xl transition-all duration-300 ${
+  className={`rounded-2xl shadow-lg p-6 border-l-4 border-emerald-600 hover:shadow-2xl transition-all duration-300 ${
     darkMode ? "bg-gray-800" : "bg-white"
   }`}
 >
@@ -916,21 +921,21 @@ const getNotifications = () => {
     <div>
 
       <p className={darkMode ? "text-gray-300 font-medium" : "text-gray-500 font-medium"}>
-        ESG Score
+        Environmental Score
       </p>
 
-      <h2 className="text-3xl font-bold text-purple-600 mt-1">
-        {calculateESGScore()}/100
+      <h2 className="text-3xl font-bold text-emerald-600 mt-1">
+        {calculateEnvironmentalScore()}/100
       </h2>
 
-      <p className="text-purple-600 mt-2 font-medium">
-        {getESGStatus()}
+      <p className="text-emerald-600 mt-2 font-medium">
+        {getEnvironmentalStatus()}
       </p>
 
     </div>
 
-    <div className={darkMode ? "w-15 h-15 rounded-full bg-green-900 flex items-center justify-center" : "w-15 h-15 rounded-full bg-green-100 flex items-center justify-center"}>
-      <FaAward className="text-2xl text-purple-600" />
+    <div className={darkMode ? "w-15 h-15 rounded-full bg-emerald-900 flex items-center justify-center" : "w-15 h-15 rounded-full bg-emerald-100 flex items-center justify-center"}>
+      <FaAward className="text-2xl text-emerald-600" />
     </div>
 
   </div>
@@ -1120,7 +1125,7 @@ const getNotifications = () => {
                 <PieChart>
                   <Pie
                     data={[
-                      { name: "Environmental", value: calculateESGScore() },
+                      { name: "Environmental", value: calculateEnvironmentalScore() },
                       { name: "Social", value: socialScore },
                       { name: "Governance", value: governanceScore },
                     ]}
