@@ -8,7 +8,7 @@ function MainLayout({ children }) {
       <Sidebar />
 
       {/* Main Content */}
-      <main className="ml-64 min-h-screen">
+      <main className="ml-0 md:ml-64 min-h-screen">
         {children}
       </main>
 

@@ -400,17 +400,17 @@ const getNotifications = () => {
 
   {/* Top Navbar */}
 <div
-  className={`fixed top-0 left-64 right-0 shadow px-8 py-4 flex justify-between items-center z-40 transition-colors duration-300 ${
+  className={`fixed top-0 left-0 md:left-64 right-0 shadow px-4 md:px-8 py-3 md:py-4 flex justify-between items-center z-40 transition-colors duration-300 ${
     darkMode ? "bg-gray-800" : "bg-white"
   }`}
 >
   {/* Left Side */}
-  <div>
-    <h1 className="text-3xl font-bold text-green-700 dark:text-green-400">
+  <div className="pl-12 md:pl-0">
+    <h1 className="text-xl md:text-3xl font-bold text-green-700 dark:text-green-400">
   ESG Dashboard
 </h1>
 
-    <p className="text-gray-500 mt-1">
+    <p className="text-gray-500 mt-0.5 text-xs md:text-sm hidden sm:block">
       Monitor your sustainability performance in real time.
     </p>
   </div>
@@ -620,7 +620,7 @@ const getNotifications = () => {
 
 </div>
 
-        <div className="p-8 pt-32"> 
+        <div className="p-4 md:p-8 pt-24 md:pt-32"> 
 
 {/* Dashboard Statistics */}
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-5">

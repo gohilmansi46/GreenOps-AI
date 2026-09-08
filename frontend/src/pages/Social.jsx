@@ -498,17 +498,17 @@ useEffect(() => {
 
      {/* HEADER */}
 
-<div className={`fixed top-0 left-64 right-0 border-b z-40 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
+<div className={`fixed top-0 left-0 md:left-64 right-0 border-b z-40 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
-  <div className="px-10 py-6 flex justify-between items-center">
+  <div className="px-4 md:px-10 py-4 md:py-6 flex justify-between items-center">
 
-    <div>
+    <div className="pl-12 md:pl-0">
 
-      <h1 className={`text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
+      <h1 className={`text-2xl md:text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
         Social Management
       </h1>
 
-      <p className={`mt-2 text-lg ${darkMode ? "text-gray-300" : "text-gray-500"}`}>
+      <p className={`mt-1 text-xs md:text-lg hidden sm:block ${darkMode ? "text-gray-300" : "text-gray-500"}`}>
         Manage workforce, training, safety and community impact.
       </p>
 
@@ -542,7 +542,7 @@ useEffect(() => {
 
         {/* ================= PAGE CONTENT ================= */}
 
-        <div className="p-10 pt-40 space-y-8">
+        <div className="p-4 md:p-10 pt-28 md:pt-40 space-y-6 md:space-y-8">
 
 
           {/* ===================================================== */}

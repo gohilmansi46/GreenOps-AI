@@ -673,14 +673,14 @@ const overallESGScore =
       <Sidebar />
 
       {/* Main Content */}
-      <div className="flex-1 ml-64">
+      <div className="flex-1 ml-0 md:ml-64">
 
         {/* HEADER */}
-        <div className={`fixed top-0 left-64 right-0 border-b z-40 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
+        <div className={`fixed top-0 left-0 md:left-64 right-0 border-b z-40 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
-          <div className="px-10 py-6 flex justify-between items-center">
+          <div className="px-4 md:px-10 py-4 md:py-6 flex justify-between items-center">
 
-            <div>
+            <div className="pl-12 md:pl-0">
 
               <h1 className={`text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
                 ESG Reports
@@ -720,7 +720,7 @@ const overallESGScore =
         </div>
 
         {/* PAGE CONTENT */}
-        <div className="p-10 pt-40 space-y-8">
+        <div className="p-4 md:p-10 pt-28 md:pt-40 space-y-6 md:space-y-8">
 
           {/* FRAMEWORK SELECTOR CARD */}
           <div className={`p-6 rounded-2xl shadow-sm border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
