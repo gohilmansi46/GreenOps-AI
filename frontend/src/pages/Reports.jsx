@@ -699,31 +699,40 @@ const totalCompliance = governanceCompliance.length;
 const compliantCount = governanceCompliance.filter((item) => item.status === "Compliant").length;
 const complianceScore = totalCompliance > 0
   ? Math.round((compliantCount / totalCompliance) * 100)
-  : 88;
+  : 0;
 
 const totalPolicies = governancePolicies.length;
 const activePoliciesCount = governancePolicies.filter((p) => p.status === "Active" || !p.status).length;
 const policyScore = totalPolicies > 0
   ? Math.round((activePoliciesCount / totalPolicies) * 100)
-  : 90;
+  : 0;
 
 const totalRisks = governanceRisks.length;
 const highRisksCount = governanceRisks.filter((r) => r.severity === "High" || r.severity === "Critical").length;
 const riskScore = totalRisks > 0
   ? Math.max(0, Math.round(((totalRisks - highRisksCount) / totalRisks) * 100))
-  : 78;
+  : 0;
 
 const totalAudits = governanceAudits.length;
 const completedAuditsCount = governanceAudits.filter((a) => a.status === "Completed" || a.status === "Compliant").length;
 const auditScore = totalAudits > 0
-  ? Math.min(100, Math.round(((completedAuditsCount + 1) / (totalAudits + 1)) * 95))
-  : 82;
+  ? Math.round((completedAuditsCount / totalAudits) * 100)
+  : 0;
 
-const ethicsScore = Math.round((policyScore * 0.5) + (complianceScore * 0.5));
+const ethicsScore = (totalPolicies > 0 || totalCompliance > 0)
+  ? Math.round((policyScore * 0.5) + (complianceScore * 0.5))
+  : 0;
 
-const governanceScore = Math.round(
-  (complianceScore + policyScore + riskScore + auditScore + ethicsScore) / 5
-);
+const activeGovernanceScores = [];
+if (totalCompliance > 0) activeGovernanceScores.push(complianceScore);
+if (totalPolicies > 0) activeGovernanceScores.push(policyScore);
+if (totalRisks > 0) activeGovernanceScores.push(riskScore);
+if (totalAudits > 0) activeGovernanceScores.push(auditScore);
+if (totalPolicies > 0 || totalCompliance > 0) activeGovernanceScores.push(ethicsScore);
+
+const governanceScore = activeGovernanceScores.length > 0
+  ? Math.round(activeGovernanceScores.reduce((acc, curr) => acc + curr, 0) / activeGovernanceScores.length)
+  : 0;
 
 // ==============================
 // OVERALL ESG SCORE (E + S + G AVERAGE)

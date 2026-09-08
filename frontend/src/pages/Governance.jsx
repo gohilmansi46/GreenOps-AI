@@ -172,36 +172,45 @@ function Governance() {
   );
 
 
-  // Dynamic Governance Health & Radar Scores
+  // Dynamic Governance Health & Radar Scores (Strictly based on actual database records)
   const totalCompliance = complianceItems.length;
   const compliantCount = complianceItems.filter((item) => item.status === "Compliant").length;
   const complianceScore = totalCompliance > 0
     ? Math.round((compliantCount / totalCompliance) * 100)
-    : 88;
+    : 0;
 
   const totalPolicies = policies.length;
   const activePoliciesCount = policies.filter((p) => p.status === "Active" || !p.status).length;
   const policyScore = totalPolicies > 0
     ? Math.round((activePoliciesCount / totalPolicies) * 100)
-    : 90;
+    : 0;
 
   const totalRisks = risks.length;
   const highRisksCount = risks.filter((r) => r.severity === "High" || r.severity === "Critical").length;
   const riskScore = totalRisks > 0
     ? Math.max(0, Math.round(((totalRisks - highRisksCount) / totalRisks) * 100))
-    : 78;
+    : 0;
 
   const totalAudits = audits.length;
   const completedAuditsCount = audits.filter((a) => a.status === "Completed" || a.status === "Compliant").length;
   const auditScore = totalAudits > 0
-    ? Math.min(100, Math.round(((completedAuditsCount + 1) / (totalAudits + 1)) * 95))
-    : 82;
+    ? Math.round((completedAuditsCount / totalAudits) * 100)
+    : 0;
 
-  const ethicsScore = Math.round((policyScore * 0.5) + (complianceScore * 0.5));
+  const ethicsScore = (totalPolicies > 0 || totalCompliance > 0)
+    ? Math.round((policyScore * 0.5) + (complianceScore * 0.5))
+    : 0;
 
-  const overallGovernanceScore = Math.round(
-    (complianceScore + policyScore + riskScore + auditScore + ethicsScore) / 5
-  );
+  const activeGovernanceScores = [];
+  if (totalCompliance > 0) activeGovernanceScores.push(complianceScore);
+  if (totalPolicies > 0) activeGovernanceScores.push(policyScore);
+  if (totalRisks > 0) activeGovernanceScores.push(riskScore);
+  if (totalAudits > 0) activeGovernanceScores.push(auditScore);
+  if (totalPolicies > 0 || totalCompliance > 0) activeGovernanceScores.push(ethicsScore);
+
+  const overallGovernanceScore = activeGovernanceScores.length > 0
+    ? Math.round(activeGovernanceScores.reduce((acc, curr) => acc + curr, 0) / activeGovernanceScores.length)
+    : 0;
 
   const healthStatus = overallGovernanceScore >= 80
     ? { label: "Healthy", bg: "bg-green-50 dark:bg-green-950/50", text: "text-green-700 dark:text-green-300" }
