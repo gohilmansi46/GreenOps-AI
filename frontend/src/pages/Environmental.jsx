@@ -641,7 +641,7 @@ return (
       </span>
     </div>
 
-    <div className="grid grid-cols-3 gap-4 text-center mb-5">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-5">
       <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700">
         <p className="text-xs text-gray-500">Gross Carbon</p>
         <p className="text-xl font-bold text-red-600">{totalCarbon} tCO₂</p>
@@ -979,13 +979,13 @@ return (
 
 
 <div
-  className={`rounded-2xl shadow-sm border overflow-hidden ${
+  className={`rounded-2xl shadow-sm border overflow-x-auto ${
     darkMode
       ? "bg-gray-800 border-gray-700"
       : "bg-white border-gray-200"
   }`}
 >
-  <table className="w-full">
+  <table className="w-full min-w-[650px]">
 <thead
   className={`${
     darkMode ? "bg-gray-900" : "bg-gray-100"

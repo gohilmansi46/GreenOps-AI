@@ -651,7 +651,7 @@ return (
               Create and manage governance activities.
             </p>
 
-            <div className="grid grid-cols-2 gap-3 mt-7">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">
 
               <button
                 onClick={() => setShowRiskModal(true)}
@@ -1530,7 +1530,7 @@ return (
 
               <div className="overflow-x-auto">
 
-                <table className="w-full">
+                <table className="w-full min-w-[700px]">
 
                   <thead>
                     <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-700/50">
@@ -1975,7 +1975,7 @@ return (
 
       <div className="overflow-x-auto">
 
-       <table className="w-full">
+       <table className="w-full min-w-[700px]">
 
   <thead>
     <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-700/50">

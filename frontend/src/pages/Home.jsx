@@ -81,18 +81,18 @@ function Home() {
 
       {/* ================= 1. FLOATING GLASSMORPHIC HEADER & NAVIGATION ================= */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-green-100 shadow-xs">
-        <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-600 to-green-700 flex items-center justify-center text-white shadow-md shadow-green-600/30 group-hover:scale-105 transition-transform duration-300">
-              <Leaf size={22} />
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-green-600 to-green-700 flex items-center justify-center text-white shadow-md shadow-green-600/30 group-hover:scale-105 transition-transform duration-300">
+              <Leaf size={20} />
             </div>
             <div>
-              <span className="text-xl font-extrabold tracking-tight text-green-950 flex items-center gap-1">
+              <span className="text-lg sm:text-xl font-extrabold tracking-tight text-green-950 flex items-center gap-1">
                 GreenOps <span className="text-green-600">AI</span>
               </span>
-              <span className="text-[10px] text-green-700 font-extrabold tracking-wider uppercase block -mt-1">
+              <span className="text-[9px] sm:text-[10px] text-green-700 font-extrabold tracking-wider uppercase block -mt-1 hidden xs:block sm:block">
                 Enterprise ESG Intelligence
               </span>
             </div>
@@ -113,18 +113,18 @@ function Home() {
           </nav>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setAuthMode("login")}
-              className="px-4 py-2 text-sm font-semibold text-green-800 hover:text-green-600 transition-colors"
+              className="px-2.5 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-green-800 hover:text-green-600 transition-colors"
             >
               Sign In
             </button>
             <button
               onClick={() => setAuthMode("register")}
-              className="px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold text-sm rounded-xl shadow-lg shadow-green-600/25 transition-all duration-300 hover:-translate-y-0.5"
+              className="px-3.5 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-green-600/25 transition-all duration-300 hover:-translate-y-0.5"
             >
-              Get Started Free
+              Get Started
             </button>
           </div>
         </div>

@@ -198,41 +198,41 @@ function PublicESGPortal() {
       
       {/* Fixed Header */}
       <header className="border-b border-gray-800/80 bg-gray-950/90 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center gap-2">
           
           {/* Brand Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-600 to-green-700 flex items-center justify-center shadow-lg shadow-green-600/30 group-hover:scale-105 transition-transform duration-300">
-              <Leaf className="text-white" size={22} />
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-green-600 to-green-700 flex items-center justify-center shadow-lg shadow-green-600/30 group-hover:scale-105 transition-transform duration-300">
+              <Leaf className="text-white" size={20} />
             </div>
             <div>
-              <h1 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
+              <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-white flex items-center gap-1">
                 GreenOps <span className="text-green-500">AI</span>
               </h1>
-              <p className="text-[11px] text-green-400 font-extrabold uppercase tracking-widest -mt-0.5">
+              <p className="text-[9px] sm:text-[11px] text-green-400 font-extrabold uppercase tracking-widest -mt-0.5 hidden xs:block">
                 Public Transparency & ESG Portal
               </p>
             </div>
           </Link>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 bg-green-950/90 border border-green-700/60 text-green-300 rounded-full text-xs font-extrabold shadow-sm">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="hidden md:flex items-center gap-2 px-3.5 py-1.5 bg-green-950/90 border border-green-700/60 text-green-300 rounded-full text-xs font-extrabold shadow-sm">
               <ShieldCheck size={14} className="text-green-400 animate-pulse" /> Verified Public Ledger
             </span>
 
             <button
               onClick={handleDownloadPublicReport}
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm cursor-pointer"
+              className="px-3 sm:px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 sm:gap-2 shadow-sm cursor-pointer"
             >
-              <Download size={14} className="text-green-400" /> Export PDF Report
+              <Download size={14} className="text-green-400" /> Export PDF
             </button>
 
             <Link
               to="/login"
-              className="px-5 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl text-xs font-extrabold transition shadow-lg shadow-green-600/20"
+              className="px-3.5 sm:px-5 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl text-xs font-extrabold transition shadow-lg shadow-green-600/20 whitespace-nowrap"
             >
-              Sign In to Portal
+              Sign In
             </Link>
           </div>
         </div>

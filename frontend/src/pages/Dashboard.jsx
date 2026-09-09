@@ -492,7 +492,7 @@ const getNotifications = () => {
 
   {showNotifications && (
     <div
-      className={`absolute right-0 mt-3 w-96 rounded-2xl shadow-2xl border z-50 overflow-hidden transition-all duration-300 ${
+      className={`absolute -right-2 sm:right-0 mt-3 w-[calc(100vw-2.5rem)] max-w-sm rounded-2xl shadow-2xl border z-50 overflow-hidden transition-all duration-300 ${
         darkMode
           ? "bg-gray-800 border-gray-700 text-white"
           : "bg-white border-gray-200 text-gray-900"

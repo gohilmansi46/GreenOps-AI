@@ -851,7 +851,7 @@ useEffect(() => {
               </div>
 
 
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
 
                 {/* Employees Trained */}
 
@@ -990,7 +990,7 @@ useEffect(() => {
 
             {/* Score Breakdown */}
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
 
               {/* Diversity */}
 
@@ -1740,7 +1740,7 @@ useEffect(() => {
 
   <div className="overflow-x-auto">
 
-    <table className="w-full">
+    <table className="w-full min-w-[700px]">
 
       <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
 

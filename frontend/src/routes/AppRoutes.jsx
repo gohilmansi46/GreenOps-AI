@@ -27,7 +27,7 @@ function GlobalAIChat() {
       {/* Floating AI Chat Trigger Button */}
       <button
         onClick={() => setIsAIChatOpen(true)}
-        className="fixed bottom-6 right-6 z-40 bg-green-700 hover:bg-green-800 text-white p-4 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 hover:scale-105 group border-2 border-green-400"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 bg-green-700 hover:bg-green-800 text-white p-3 sm:p-4 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 hover:scale-105 group border-2 border-green-400"
         title="Ask AI Copilot"
       >
         <Bot size={24} className="group-hover:rotate-12 transition-transform" />
