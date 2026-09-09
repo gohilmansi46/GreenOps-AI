@@ -2670,6 +2670,7 @@ return (
               setSelectedPolicy(null);
               setToastNotice({
                 type: "success",
+                title: selectedPolicy ? "Policy Updated" : "Policy Added",
                 message: selectedPolicy
                   ? "Governance policy updated successfully!"
                   : "Governance policy added successfully!",
@@ -2679,6 +2680,7 @@ return (
               console.error("Error saving policy:", err);
               setToastNotice({
                 type: "error",
+                title: "Action Failed",
                 message: "Failed to save policy. Please try again.",
               });
               setTimeout(() => setToastNotice(null), 3000);
@@ -2712,6 +2714,7 @@ return (
               setSelectedRisk(null);
               setToastNotice({
                 type: "success",
+                title: selectedRisk ? "Risk Updated" : "Risk Added",
                 message: selectedRisk
                   ? "Governance risk updated successfully!"
                   : "Governance risk added successfully!",
@@ -2721,6 +2724,7 @@ return (
               console.error("Error saving risk:", err);
               setToastNotice({
                 type: "error",
+                title: "Action Failed",
                 message: "Failed to save risk. Please try again.",
               });
               setTimeout(() => setToastNotice(null), 3000);
@@ -2848,6 +2852,7 @@ return (
 
                       setToastNotice({
                         type: "success",
+                        title: "Deleted successfully",
                         message:
                           deleteConfirm.type === "compliance"
                             ? "Compliance requirement deleted"
@@ -2908,7 +2913,7 @@ return (
 
             <div>
               <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                {toastNotice.type === "success" ? "Deleted successfully" : "Action failed"}
+                {toastNotice.title || (toastNotice.type === "success" ? "Success" : "Action failed")}
               </p>
 
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
