@@ -49,6 +49,53 @@ function Governance() {
 
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [toastNotice, setToastNotice] = useState(null);
+  const [selectedMatrixFilter, setSelectedMatrixFilter] = useState(null);
+
+  const MATRIX_LIKELIHOODS = ["Likely", "Possible", "Unlikely", "Rare"];
+  const MATRIX_SEVERITIES = ["Low", "Medium", "High", "Critical"];
+
+  const getMatrixCellColor = (likelihood, severity, hasRisks) => {
+    const l = likelihood.toLowerCase();
+    const s = severity.toLowerCase();
+
+    // Critical (Red)
+    if (
+      (l === "likely" && (s === "high" || s === "critical")) ||
+      (l === "possible" && s === "critical")
+    ) {
+      return hasRisks
+        ? "bg-red-500/20 dark:bg-red-950/70 border-red-500/50 text-red-900 dark:text-red-200"
+        : "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-400";
+    }
+
+    // High (Orange)
+    if (
+      (l === "likely" && s === "medium") ||
+      (l === "possible" && s === "high") ||
+      (l === "unlikely" && s === "critical")
+    ) {
+      return hasRisks
+        ? "bg-orange-500/20 dark:bg-orange-950/70 border-orange-500/50 text-orange-900 dark:text-orange-200"
+        : "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/40 text-orange-700 dark:text-orange-400";
+    }
+
+    // Moderate (Amber)
+    if (
+      (l === "likely" && s === "low") ||
+      (l === "possible" && s === "medium") ||
+      (l === "unlikely" && s === "high") ||
+      (l === "rare" && s === "critical")
+    ) {
+      return hasRisks
+        ? "bg-amber-500/20 dark:bg-amber-950/70 border-amber-500/50 text-amber-900 dark:text-amber-200"
+        : "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40 text-amber-700 dark:text-amber-400";
+    }
+
+    // Low (Emerald)
+    return hasRisks
+      ? "bg-emerald-500/20 dark:bg-emerald-950/70 border-emerald-500/50 text-emerald-900 dark:text-emerald-200"
+      : "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-400";
+  };
 
   const [auditSearch, setAuditSearch] = useState("");
   const [auditStatusFilter, setAuditStatusFilter] = useState("All");
@@ -2255,6 +2302,179 @@ return (
   </div>
 </section>
 
+        {/* Enterprise Risk Matrix Section */}
+        <section className="mt-8">
+          <div className={`border rounded-2xl p-7 shadow-sm ${darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                  Visual Risk Assessment
+                </span>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-1 flex flex-wrap items-center gap-2">
+                  <span>🎯 Enterprise Risk Matrix</span>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                    Likelihood × Severity
+                  </span>
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Interactive heatmap displaying active governance & climate transition risks. Click any matrix cell to filter the register.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {selectedMatrixFilter && (
+                  <button
+                    onClick={() => setSelectedMatrixFilter(null)}
+                    className="px-3 py-1.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 text-xs font-bold hover:bg-amber-100 transition"
+                  >
+                    Clear Filter ({selectedMatrixFilter.likelihood} × {selectedMatrixFilter.severity}) ✕
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowRiskModal(true)}
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 shadow-sm"
+                >
+                  <span>+</span> Log New Risk
+                </button>
+              </div>
+            </div>
+
+            {/* Matrix Heatmap Grid */}
+            <div className="overflow-x-auto">
+              <div className="min-w-[650px]">
+                {/* Severity Headers */}
+                <div className="grid grid-cols-5 gap-2 mb-2 text-center text-xs font-bold">
+                  <div className="p-2 text-gray-400 dark:text-gray-500 uppercase tracking-wider self-center">
+                    Likelihood \ Severity
+                  </div>
+                  {["Low", "Medium", "High", "Critical"].map((sev) => (
+                    <div
+                      key={sev}
+                      className={`p-2.5 rounded-xl border uppercase tracking-wider font-extrabold ${
+                        sev === "Critical"
+                          ? "bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800"
+                          : sev === "High"
+                          ? "bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800"
+                          : sev === "Medium"
+                          ? "bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800"
+                          : "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+                      }`}
+                    >
+                      {sev}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Matrix Rows */}
+                {MATRIX_LIKELIHOODS.map((lh) => (
+                  <div key={lh} className="grid grid-cols-5 gap-2 mb-2">
+                    {/* Row Header */}
+                    <div className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center justify-center text-center">
+                      {lh}
+                    </div>
+
+                    {/* Matrix Cells */}
+                    {MATRIX_SEVERITIES.map((sev) => {
+                      const cellRisks = risks.filter(
+                        (r) =>
+                          (r.likelihood || "Possible").toLowerCase() === lh.toLowerCase() &&
+                          (r.severity || "Medium").toLowerCase() === sev.toLowerCase()
+                      );
+                      const cellColorClass = getMatrixCellColor(lh, sev, cellRisks.length > 0);
+                      const isSelected =
+                        selectedMatrixFilter?.likelihood === lh &&
+                        selectedMatrixFilter?.severity === sev;
+
+                      return (
+                        <div
+                          key={`${lh}-${sev}`}
+                          onClick={() => {
+                            if (cellRisks.length > 0) {
+                              setSelectedMatrixFilter(
+                                isSelected ? null : { likelihood: lh, severity: sev }
+                              );
+                            }
+                          }}
+                          className={`p-3 min-h-[90px] rounded-xl border transition-all cursor-pointer relative flex flex-col justify-between ${cellColorClass} ${
+                            isSelected
+                              ? "ring-4 ring-amber-500 scale-[1.02] shadow-lg z-10"
+                              : cellRisks.length > 0
+                              ? "hover:shadow-md hover:scale-[1.01]"
+                              : "opacity-80"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between text-[11px] font-bold">
+                            <span className="opacity-80">
+                              {lh.slice(0, 3)} × {sev.slice(0, 3)}
+                            </span>
+                            {cellRisks.length > 0 ? (
+                              <span className="px-2 py-0.5 rounded-full text-xs font-extrabold bg-white/90 dark:bg-black/40 shadow-xs">
+                                {cellRisks.length} {cellRisks.length === 1 ? "Risk" : "Risks"}
+                              </span>
+                            ) : (
+                              <span className="opacity-40 text-[10px]">—</span>
+                            )}
+                          </div>
+
+                          {cellRisks.length > 0 ? (
+                            <div className="mt-2 space-y-1">
+                              {cellRisks.slice(0, 2).map((r) => (
+                                <div
+                                  key={r.id}
+                                  className="text-[11px] font-bold truncate px-2 py-0.5 rounded bg-white/80 dark:bg-gray-900/80 text-gray-900 dark:text-white border border-gray-200/50 dark:border-gray-700/50"
+                                  title={r.riskTitle || r.title}
+                                >
+                                  • {r.riskTitle || r.title || "Risk Item"}
+                                </div>
+                              ))}
+                              {cellRisks.length > 2 && (
+                                <div className="text-[10px] font-extrabold text-right opacity-90">
+                                  +{cellRisks.length - 2} more...
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-[10px] text-center opacity-40 font-medium my-auto">
+                              Clear Zone
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Heatmap Legend */}
+            <div className="flex flex-wrap items-center justify-between gap-4 mt-6 pt-5 border-t border-gray-100 dark:border-gray-700 text-xs font-semibold text-gray-600 dark:text-gray-300">
+              <div className="flex items-center gap-4 flex-wrap">
+                <span className="font-bold text-gray-900 dark:text-white">Risk Heatmap Legend:</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3.5 h-3.5 rounded bg-emerald-500" />
+                  <span>Low Risk (Acceptable)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3.5 h-3.5 rounded bg-amber-400" />
+                  <span>Moderate Risk (Monitor)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3.5 h-3.5 rounded bg-orange-500" />
+                  <span>High Risk (Action Plan)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3.5 h-3.5 rounded bg-red-600" />
+                  <span>Critical Risk (Escalate Immediately)</span>
+                </div>
+              </div>
+
+              <div className="text-gray-400 dark:text-gray-400 text-[11px]">
+                ISO 31000 & TCFD Climate Risk Framework Aligned
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Active Policies & Risk Register Section */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
           {/* Active Policies */}
@@ -2309,7 +2529,17 @@ return (
                   Risk Management
                 </span>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  Risk Register ({risks.length})
+                  Risk Register ({
+                    selectedMatrixFilter
+                      ? risks.filter(
+                          (r) =>
+                            (r.likelihood || "Possible").toLowerCase() ===
+                              selectedMatrixFilter.likelihood.toLowerCase() &&
+                            (r.severity || "Medium").toLowerCase() ===
+                              selectedMatrixFilter.severity.toLowerCase()
+                        ).length
+                      : risks.length
+                  })
                 </h3>
               </div>
               <button
@@ -2328,12 +2558,24 @@ return (
               </div>
             ) : (
               <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
-                {risks.map((r) => (
+                {(selectedMatrixFilter
+                  ? risks.filter(
+                      (r) =>
+                        (r.likelihood || "Possible").toLowerCase() ===
+                          selectedMatrixFilter.likelihood.toLowerCase() &&
+                        (r.severity || "Medium").toLowerCase() ===
+                          selectedMatrixFilter.severity.toLowerCase()
+                    )
+                  : risks
+                ).map((r) => (
                   <div key={r.id} className="p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center justify-between">
                     <div>
                       <h4 className="font-bold text-gray-900 dark:text-white text-sm">{r.riskTitle || r.title || "Risk Factor"}</h4>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                         Owner: <span className="font-medium text-gray-700 dark:text-gray-300">{r.riskOwner || "Risk Team"}</span> | Category: <span className="font-medium text-gray-700 dark:text-gray-300">{r.riskCategory || "Operational"}</span>
+                      </p>
+                      <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5 font-semibold">
+                        Likelihood: {r.likelihood || "Possible"} | Severity: {r.severity || "Medium"}
                       </p>
                     </div>
                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${r.severity === "High" || r.severity === "Critical" ? "bg-red-100 dark:bg-red-950/60 text-red-800 dark:text-red-300" : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"}`}>
