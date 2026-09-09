@@ -43,6 +43,8 @@ function Governance() {
   const [showComplianceModal, setShowComplianceModal] = useState(false);
   const [selectedCompliance, setSelectedCompliance] = useState(null);
   const [selectedComplianceView, setSelectedComplianceView] = useState(null);
+  const [selectedPolicy, setSelectedPolicy] = useState(null);
+  const [selectedRisk, setSelectedRisk] = useState(null);
 
   const [audits, setAudits] = useState([]);
   const [complianceItems, setComplianceItems] = useState([]);
@@ -2505,16 +2507,41 @@ return (
             ) : (
               <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
                 {policies.map((p) => (
-                  <div key={p.id} className="p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center justify-between">
+                  <div key={p.id} className="p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center justify-between gap-2">
                     <div>
                       <h4 className="font-bold text-gray-900 dark:text-white text-sm">{p.policyName || "Untitled Policy"}</h4>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                         Category: <span className="font-medium text-gray-700 dark:text-gray-300">{p.policyCategory || "General"}</span> | Owner: <span className="font-medium text-gray-700 dark:text-gray-300">{p.policyOwner || "Unassigned"}</span>
                       </p>
                     </div>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${p.status === "Active" ? "bg-green-100 dark:bg-green-950/60 text-green-800 dark:text-green-300" : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"}`}>
-                      {p.status || "Active"}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${p.status === "Active" ? "bg-green-100 dark:bg-green-950/60 text-green-800 dark:text-green-300" : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"}`}>
+                        {p.status || "Active"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPolicy(p);
+                          setShowPolicyModal(true);
+                        }}
+                        className="px-2 py-1 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDeleteConfirm({
+                            type: "policy",
+                            id: p.id,
+                            name: p.policyName || "Policy Item",
+                          })
+                        }
+                        className="px-2 py-1 text-xs font-semibold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/40 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/60 transition"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2544,7 +2571,10 @@ return (
               </div>
               <button
                 type="button"
-                onClick={() => setShowRiskModal(true)}
+                onClick={() => {
+                  setSelectedRisk(null);
+                  setShowRiskModal(true);
+                }}
                 className="px-3.5 py-2 bg-amber-50 dark:bg-amber-900/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-xs font-bold rounded-xl transition flex items-center gap-1"
               >
                 <span>+</span> Add Risk
@@ -2568,7 +2598,7 @@ return (
                     )
                   : risks
                 ).map((r) => (
-                  <div key={r.id} className="p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center justify-between">
+                  <div key={r.id} className="p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center justify-between gap-2">
                     <div>
                       <h4 className="font-bold text-gray-900 dark:text-white text-sm">{r.riskTitle || r.title || "Risk Factor"}</h4>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -2578,9 +2608,34 @@ return (
                         Likelihood: {r.likelihood || "Possible"} | Severity: {r.severity || "Medium"}
                       </p>
                     </div>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${r.severity === "High" || r.severity === "Critical" ? "bg-red-100 dark:bg-red-950/60 text-red-800 dark:text-red-300" : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"}`}>
-                      {r.severity || "Medium"} Severity
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${r.severity === "High" || r.severity === "Critical" ? "bg-red-100 dark:bg-red-950/60 text-red-800 dark:text-red-300" : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"}`}>
+                        {r.severity || "Medium"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedRisk(r);
+                          setShowRiskModal(true);
+                        }}
+                        className="px-2 py-1 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDeleteConfirm({
+                            type: "risk",
+                            id: r.id,
+                            name: r.riskTitle || r.title || "Risk Factor",
+                          })
+                        }
+                        className="px-2 py-1 text-xs font-semibold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/40 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/60 transition"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2593,24 +2648,38 @@ return (
       {/* Governance Policy Modal */}
       {showPolicyModal && (
         <GovernancePolicyModal
-          onClose={() => setShowPolicyModal(false)}
+          policy={selectedPolicy}
+          onClose={() => {
+            setShowPolicyModal(false);
+            setSelectedPolicy(null);
+          }}
           onSave={async (policyData) => {
             try {
-              await addDoc(collection(db, "governancePolicies"), {
-                ...policyData,
-                createdAt: new Date().toISOString(),
-              });
+              if (selectedPolicy) {
+                await updateDoc(
+                  doc(db, "governancePolicies", selectedPolicy.id),
+                  policyData
+                );
+              } else {
+                await addDoc(collection(db, "governancePolicies"), {
+                  ...policyData,
+                  createdAt: new Date().toISOString(),
+                });
+              }
               setShowPolicyModal(false);
+              setSelectedPolicy(null);
               setToastNotice({
                 type: "success",
-                message: "Governance policy added successfully!",
+                message: selectedPolicy
+                  ? "Governance policy updated successfully!"
+                  : "Governance policy added successfully!",
               });
               setTimeout(() => setToastNotice(null), 3000);
             } catch (err) {
-              console.error("Error adding policy:", err);
+              console.error("Error saving policy:", err);
               setToastNotice({
                 type: "error",
-                message: "Failed to add policy. Please try again.",
+                message: "Failed to save policy. Please try again.",
               });
               setTimeout(() => setToastNotice(null), 3000);
             }
@@ -2621,24 +2690,38 @@ return (
       {/* Governance Risk Modal */}
       {showRiskModal && (
         <GovernanceRiskModal
-          onClose={() => setShowRiskModal(false)}
+          risk={selectedRisk}
+          onClose={() => {
+            setShowRiskModal(false);
+            setSelectedRisk(null);
+          }}
           onSave={async (riskData) => {
             try {
-              await addDoc(collection(db, "governanceRisks"), {
-                ...riskData,
-                createdAt: new Date().toISOString(),
-              });
+              if (selectedRisk) {
+                await updateDoc(
+                  doc(db, "governanceRisks", selectedRisk.id),
+                  riskData
+                );
+              } else {
+                await addDoc(collection(db, "governanceRisks"), {
+                  ...riskData,
+                  createdAt: new Date().toISOString(),
+                });
+              }
               setShowRiskModal(false);
+              setSelectedRisk(null);
               setToastNotice({
                 type: "success",
-                message: "Governance risk added successfully!",
+                message: selectedRisk
+                  ? "Governance risk updated successfully!"
+                  : "Governance risk added successfully!",
               });
               setTimeout(() => setToastNotice(null), 3000);
             } catch (err) {
-              console.error("Error adding risk:", err);
+              console.error("Error saving risk:", err);
               setToastNotice({
                 type: "error",
-                message: "Failed to add risk. Please try again.",
+                message: "Failed to save risk. Please try again.",
               });
               setTimeout(() => setToastNotice(null), 3000);
             }
@@ -2704,6 +2787,10 @@ return (
                 <span className="font-semibold text-gray-900 dark:text-white">
                   {deleteConfirm.type === "compliance"
                     ? "compliance requirement"
+                    : deleteConfirm.type === "policy"
+                    ? "governance policy"
+                    : deleteConfirm.type === "risk"
+                    ? "governance risk"
                     : "audit"}
                 </span>
                 ?
@@ -2713,6 +2800,10 @@ return (
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                   {deleteConfirm.type === "compliance"
                     ? "Requirement"
+                    : deleteConfirm.type === "policy"
+                    ? "Policy"
+                    : deleteConfirm.type === "risk"
+                    ? "Risk"
                     : "Audit"}
                 </p>
 
@@ -2737,19 +2828,19 @@ return (
                     try {
                       if (deleteConfirm.type === "compliance") {
                         await deleteDoc(
-                          doc(
-                            db,
-                            "governanceCompliance",
-                            deleteConfirm.id
-                          )
+                          doc(db, "governanceCompliance", deleteConfirm.id)
+                        );
+                      } else if (deleteConfirm.type === "policy") {
+                        await deleteDoc(
+                          doc(db, "governancePolicies", deleteConfirm.id)
+                        );
+                      } else if (deleteConfirm.type === "risk") {
+                        await deleteDoc(
+                          doc(db, "governanceRisks", deleteConfirm.id)
                         );
                       } else {
                         await deleteDoc(
-                          doc(
-                            db,
-                            "governanceAudits",
-                            deleteConfirm.id
-                          )
+                          doc(db, "governanceAudits", deleteConfirm.id)
                         );
                       }
 
@@ -2760,6 +2851,10 @@ return (
                         message:
                           deleteConfirm.type === "compliance"
                             ? "Compliance requirement deleted"
+                            : deleteConfirm.type === "policy"
+                            ? "Governance policy deleted"
+                            : deleteConfirm.type === "risk"
+                            ? "Governance risk deleted"
                             : "Audit deleted",
                       });
 
