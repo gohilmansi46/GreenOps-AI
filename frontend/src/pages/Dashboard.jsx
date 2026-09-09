@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { auth, signOutUser } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
@@ -102,6 +102,52 @@ function Dashboard() {
   const [socialScore, setSocialScore] = useState(85);
   const [governanceScore, setGovernanceScore] = useState(86);
   const notificationRef = useRef(null);
+
+  const FACILITY_CONFIGS = useMemo(() => ({
+    "All Facilities": {
+      targetCarbon: 300,
+      targetYear: 2030,
+      multiplier: 1.0,
+      energyMultiplier: 1.0,
+      waterMultiplier: 1.0,
+      goalDescription: "Corporate goal: Reduce total operational carbon emissions below",
+    },
+    "Corporate HQ": {
+      targetCarbon: 100,
+      targetYear: 2028,
+      multiplier: 0.35,
+      energyMultiplier: 0.3,
+      waterMultiplier: 0.25,
+      goalDescription: "Facility goal: Transition HQ operations to net-zero power and reduce emissions below",
+    },
+    "Manufacturing Facility A": {
+      targetCarbon: 150,
+      targetYear: 2030,
+      multiplier: 0.5,
+      energyMultiplier: 0.55,
+      waterMultiplier: 0.6,
+      goalDescription: "Facility goal: Optimize plant efficiency and cap industrial carbon emissions under",
+    },
+    "R&D Hub": {
+      targetCarbon: 50,
+      targetYear: 2026,
+      multiplier: 0.15,
+      energyMultiplier: 0.15,
+      waterMultiplier: 0.15,
+      goalDescription: "Facility goal: Achieve green laboratory certification with emissions below",
+    },
+  }), []);
+
+  const currentFacilityConfig = FACILITY_CONFIGS[facility] || FACILITY_CONFIGS["All Facilities"];
+
+  const activeFacilityMetrics = useMemo(() => {
+    if (!latestData) return null;
+    return {
+      carbon: Math.round(latestData.carbon * currentFacilityConfig.multiplier),
+      energy: Math.round(latestData.energy * currentFacilityConfig.energyMultiplier),
+      water: Math.round(latestData.water * currentFacilityConfig.waterMultiplier),
+    };
+  }, [latestData, currentFacilityConfig]);
   const getGreeting = () => {
   const hour = new Date().getHours();
 
@@ -224,24 +270,27 @@ function Dashboard() {
   }, []);
 
 const calculateEnvironmentalScore = () => {
-  if (!latestData) return 0;
+  if (!activeFacilityMetrics) return 0;
 
   let score = 100;
+  const cTarget = currentFacilityConfig.targetCarbon;
 
-  // Carbon Emissions
-  if (latestData.carbon > 500) score -= 25;
-  else if (latestData.carbon > 300) score -= 15;
-  else if (latestData.carbon > 100) score -= 5;
+  // Carbon Emissions relative to target
+  if (activeFacilityMetrics.carbon > cTarget * 1.66) score -= 25;
+  else if (activeFacilityMetrics.carbon > cTarget) score -= 15;
+  else if (activeFacilityMetrics.carbon > cTarget * 0.33) score -= 5;
 
   // Energy Usage
-  if (latestData.energy > 2000) score -= 25;
-  else if (latestData.energy > 1000) score -= 15;
-  else if (latestData.energy > 500) score -= 5;
+  const eLimit = 2000 * currentFacilityConfig.energyMultiplier;
+  if (activeFacilityMetrics.energy > eLimit) score -= 25;
+  else if (activeFacilityMetrics.energy > eLimit * 0.5) score -= 15;
+  else if (activeFacilityMetrics.energy > eLimit * 0.25) score -= 5;
 
   // Water Consumption
-  if (latestData.water > 10000) score -= 25;
-  else if (latestData.water > 5000) score -= 15;
-  else if (latestData.water > 3000) score -= 5;
+  const wLimit = 10000 * currentFacilityConfig.waterMultiplier;
+  if (activeFacilityMetrics.water > wLimit) score -= 25;
+  else if (activeFacilityMetrics.water > wLimit * 0.5) score -= 15;
+  else if (activeFacilityMetrics.water > wLimit * 0.3) score -= 5;
 
   return Math.max(score, 0);
 };
@@ -252,27 +301,30 @@ const calculateOverallESGScore = () => {
 };
 
 const getCarbonStatus = () => {
-  if (!latestData) return "";
+  if (!activeFacilityMetrics) return "";
+  const cTarget = currentFacilityConfig.targetCarbon;
 
-  if (latestData.carbon <= 100) return "🟢 Excellent";
-  if (latestData.carbon <= 300) return "🟢 Normal";
-  if (latestData.carbon <= 500) return "🟡 Moderate";
+  if (activeFacilityMetrics.carbon <= cTarget * 0.33) return "🟢 Excellent";
+  if (activeFacilityMetrics.carbon <= cTarget) return "🟢 Normal";
+  if (activeFacilityMetrics.carbon <= cTarget * 1.66) return "🟡 Moderate";
   return "🔴 High";
 };
 
 const getEnergyStatus = () => {
-  if (!latestData) return "";
-  
-  if (latestData.energy <= 500) return "🟢 Efficient";
-  if (latestData.energy <= 1000) return "🟡 Moderate";
+  if (!activeFacilityMetrics) return "";
+  const eLimit = 2000 * currentFacilityConfig.energyMultiplier;
+
+  if (activeFacilityMetrics.energy <= eLimit * 0.25) return "🟢 Efficient";
+  if (activeFacilityMetrics.energy <= eLimit * 0.5) return "🟡 Moderate";
   return "🔴 High";
 };
 
 const getWaterStatus = () => {
-  if (!latestData) return "";
+  if (!activeFacilityMetrics) return "";
+  const wLimit = 10000 * currentFacilityConfig.waterMultiplier;
 
-  if (latestData.water <= 3000) return "🟢 Efficient";
-  if (latestData.water <= 8000) return "🟡 Moderate";
+  if (activeFacilityMetrics.water <= wLimit * 0.3) return "🟢 Efficient";
+  if (activeFacilityMetrics.water <= wLimit * 0.8) return "🟡 Moderate";
   return "🔴 High Usage";
 };
 
@@ -286,33 +338,36 @@ const getEnvironmentalStatus = () => {
 };
 
 const getAIInsights = () => {
-  if (!latestData) {
+  if (!activeFacilityMetrics) {
     return ["Loading ESG insights..."];
   }
 
   const insights = [];
 
   // Carbon
-  if (latestData.carbon > 500) {
-    insights.push("⚠️ Carbon emissions are very high. Consider reducing fossil fuel usage.");
-  } else if (latestData.carbon > 200) {
-    insights.push("🟡 Carbon emissions are moderate. There is room for improvement.");
+  const cTarget = currentFacilityConfig.targetCarbon;
+  if (activeFacilityMetrics.carbon > cTarget * 1.66) {
+    insights.push(`⚠️ ${facility} carbon emissions are high (${activeFacilityMetrics.carbon} tCO₂). Focus on reducing energy intensity.`);
+  } else if (activeFacilityMetrics.carbon > cTarget) {
+    insights.push(`🟡 ${facility} carbon emissions are slightly above target (${activeFacilityMetrics.carbon} tCO₂ / ${cTarget} tCO₂).`);
   } else {
-    insights.push("✅ Carbon emissions are within a good range.");
+    insights.push(`✅ ${facility} carbon emissions are on track (${activeFacilityMetrics.carbon} tCO₂).`);
   }
 
   // Energy
-  if (latestData.energy > 1000) {
-    insights.push("⚡ Energy consumption is high. Consider improving energy efficiency.");
+  const eLimit = 2000 * currentFacilityConfig.energyMultiplier;
+  if (activeFacilityMetrics.energy > eLimit * 0.5) {
+    insights.push(`⚡ Energy consumption for ${facility} is ${activeFacilityMetrics.energy} kWh. Optimizations recommended.`);
   } else {
-    insights.push("✅ Energy consumption is under control.");
+    insights.push(`✅ Energy consumption for ${facility} is well managed.`);
   }
 
   // Water
-  if (latestData.water > 5000) {
-    insights.push("💧 Water usage is high. Water conservation measures are recommended.");
+  const wLimit = 10000 * currentFacilityConfig.waterMultiplier;
+  if (activeFacilityMetrics.water > wLimit * 0.5) {
+    insights.push(`💧 Water usage for ${facility} is ${activeFacilityMetrics.water} L.`);
   } else {
-    insights.push("✅ Water consumption is efficient.");
+    insights.push(`✅ Water consumption for ${facility} is within limits.`);
   }
 
   // Environmental Score
@@ -330,46 +385,49 @@ const getAIInsights = () => {
 };
 
 const getNotifications = () => {
-  if (!latestData) return [];
+  if (!activeFacilityMetrics) return [];
 
   const notifications = [];
 
-  if (latestData.carbon > 500) {
+  const cTarget = currentFacilityConfig.targetCarbon;
+  if (activeFacilityMetrics.carbon > cTarget) {
     notifications.push({
       id: 1,
       type: "danger",
       title: "High Carbon Emissions",
-      message: `Carbon emissions reached ${latestData.carbon} tCO₂`,
-      createdAt: latestData.createdAt,
-      });
-      } else {
-      notifications.push({
+      message: `Carbon emissions reached ${activeFacilityMetrics.carbon} tCO₂ for ${facility}`,
+      createdAt: latestData?.createdAt,
+    });
+  } else {
+    notifications.push({
       id: 1,
       type: "success",
       title: "Carbon Status",
-      message: `Carbon emissions are under control (${latestData.carbon} tCO₂)`,
-      createdAt: latestData.createdAt,
-      });
-      }
-
-  if (latestData.energy > 1000) {
-    notifications.push({
-  id: 2,
-  type: "warning",
-  title: "Energy Alert",
-  message: `Energy usage is ${latestData.energy} kWh`,
-  createdAt: latestData.createdAt,
-  });
+      message: `Carbon emissions are under control (${activeFacilityMetrics.carbon} tCO₂)`,
+      createdAt: latestData?.createdAt,
+    });
   }
 
-  if (latestData.water > 5000) {
+  const eLimit = 2000 * currentFacilityConfig.energyMultiplier;
+  if (activeFacilityMetrics.energy > eLimit * 0.5) {
     notifications.push({
-  id: 3,
-  type: "warning",
-  title: "Water Consumption",
-  message: `Water usage reached ${latestData.water} L`,
-  createdAt: latestData.createdAt,
-});
+      id: 2,
+      type: "warning",
+      title: "Energy Alert",
+      message: `Energy usage is ${activeFacilityMetrics.energy} kWh for ${facility}`,
+      createdAt: latestData?.createdAt,
+    });
+  }
+
+  const wLimit = 10000 * currentFacilityConfig.waterMultiplier;
+  if (activeFacilityMetrics.water > wLimit * 0.5) {
+    notifications.push({
+      id: 3,
+      type: "warning",
+      title: "Water Consumption",
+      message: `Water usage reached ${activeFacilityMetrics.water} L for ${facility}`,
+      createdAt: latestData?.createdAt,
+    });
   }
 
   const envScore = calculateEnvironmentalScore();
@@ -427,7 +485,7 @@ const getNotifications = () => {
     <select
       value={facility}
       onChange={(e) => setFacility(e.target.value)}
-      className={`hidden lg:block px-4 py-2 rounded-full text-xs font-bold border transition ${
+      className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold border transition max-w-[130px] sm:max-w-none truncate ${
         darkMode
           ? "bg-gray-700 border-gray-600 text-green-400"
           : "bg-green-50 border-green-300 text-green-800"
@@ -784,10 +842,10 @@ const getNotifications = () => {
         </span>
       </div>
       <h3 className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
-        Net-Zero Emissions Pathway 2030
+        Net-Zero Emissions Pathway {currentFacilityConfig.targetYear}
       </h3>
       <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
-        Corporate goal: Reduce total operational carbon emissions below <strong className="text-green-600">300 tCO₂</strong> by 2030.
+        {currentFacilityConfig.goalDescription} <strong className="text-green-600">{currentFacilityConfig.targetCarbon} tCO₂</strong> by {currentFacilityConfig.targetYear}.
       </p>
     </div>
 
@@ -795,19 +853,19 @@ const getNotifications = () => {
       <div className="flex justify-between items-center text-xs font-semibold">
         <span className={darkMode ? "text-gray-300" : "text-gray-700"}>Current Level</span>
         <span className="text-emerald-600 font-bold">
-          {latestData ? `${latestData.carbon} / 300 tCO₂` : "0 / 300 tCO₂"}
+          {activeFacilityMetrics ? `${activeFacilityMetrics.carbon} / ${currentFacilityConfig.targetCarbon} tCO₂` : `0 / ${currentFacilityConfig.targetCarbon} tCO₂`}
         </span>
       </div>
       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
         <div
           className="bg-emerald-500 h-full rounded-full transition-all duration-500"
           style={{
-            width: `${Math.min(100, Math.max(10, latestData ? Math.round((latestData.carbon / 300) * 100) : 40))}%`,
+            width: `${Math.min(100, Math.max(5, activeFacilityMetrics ? Math.round((activeFacilityMetrics.carbon / currentFacilityConfig.targetCarbon) * 100) : 0))}%`,
           }}
         ></div>
       </div>
       <p className="text-[11px] text-right text-gray-500">
-        {latestData && latestData.carbon <= 300
+        {activeFacilityMetrics && activeFacilityMetrics.carbon <= currentFacilityConfig.targetCarbon
           ? "🎉 On Track to Net-Zero Target!"
           : "⚠️ Requires emission reduction strategies"}
       </p>
@@ -831,7 +889,7 @@ const getNotifications = () => {
       </p>
 
       <h2 className="text-3xl font-bold text-green-700 mt-1">
-        {latestData ? `${latestData.carbon} tCO₂` : "Loading..."}
+        {activeFacilityMetrics ? `${activeFacilityMetrics.carbon} tCO₂` : "Loading..."}
       </h2>
 
       <p className="text-green-600 mt-2 font-medium">
@@ -861,7 +919,7 @@ const getNotifications = () => {
       </p>
 
       <h2 className="text-3xl font-bold text-blue-600 mt-1">
-        {latestData ? `${latestData.energy} kWh` : "Loading..."}
+        {activeFacilityMetrics ? `${activeFacilityMetrics.energy} kWh` : "Loading..."}
       </h2>
 
       <p className="text-blue-600 mt-2 font-medium">
@@ -893,7 +951,7 @@ const getNotifications = () => {
       </p>
 
       <h2 className="text-3xl font-bold text-cyan-600 mt-1">
-        {latestData ? `${latestData.water} L` : "Loading..."}
+        {activeFacilityMetrics ? `${activeFacilityMetrics.water} L` : "Loading..."}
       </h2>
 
       <p className="text-cyan-600 mt-2 font-medium">
