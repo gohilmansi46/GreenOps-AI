@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { auth, signOutUser } from "../services/authService";
+import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import { useTheme } from "../context/ThemeContext";
@@ -8,6 +9,7 @@ import {
   collection,
   getDocs,
   query,
+  where,
   orderBy,
   limit,
 } from "firebase/firestore";
@@ -156,42 +158,59 @@ function Dashboard() {
   return "Good Evening 🌙";
 };
   
-  const fetchLatestData = async () => {
+  const fetchLatestData = async (userUid) => {
     try {
       const q = query(
         collection(db, "environmentalData"),
-        orderBy("createdAt", "desc"),
-        limit(1)
+        where("userId", "==", userUid)
       );
 
       const snapshot = await getDocs(q);
 
       if (!snapshot.empty) {
-        setLatestData(snapshot.docs[0].data());
+        const rawDocs = snapshot.docs.map((doc) => doc.data());
+        rawDocs.sort((a, b) => {
+          const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+          const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+          return tB - tA;
+        });
+        setLatestData(rawDocs[0]);
+      } else {
+        setLatestData(null);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
 
-  const fetchChartData = async () => {
+  const fetchChartData = async (userUid) => {
     try {
       const q = query(
         collection(db, "environmentalData"),
-        orderBy("createdAt", "asc")
+        where("userId", "==", userUid)
       );
 
       const snapshot = await getDocs(q);
 
-      const data = snapshot.docs.map((doc) => ({
-        month: doc.data().createdAt.toDate().toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "short",
-        }),
-        emissions: doc.data().carbon,
-        energy: doc.data().energy,
-        water: doc.data().water,
-      }));
+      const rawDocs = snapshot.docs.map((doc) => doc.data());
+      rawDocs.sort((a, b) => {
+        const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+        const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+        return tA - tB;
+      });
+
+      const data = rawDocs.map((item) => {
+        const dateObj = item.createdAt?.toDate ? item.createdAt.toDate() : new Date(item.createdAt || Date.now());
+        return {
+          month: dateObj.toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+          }),
+          emissions: item.carbon || 0,
+          energy: item.energy || 0,
+          water: item.water || 0,
+        };
+      });
 
       setChartData(data);
     } catch (error) {
@@ -199,30 +218,47 @@ function Dashboard() {
     }
   };
 
-  const fetchSocialScore = async () => {
+  const fetchSocialScore = async (userUid) => {
     try {
-      const q = query(collection(db, "socialData"), orderBy("createdAt", "desc"), limit(1));
+      const q = query(
+        collection(db, "socialData"),
+        where("userId", "==", userUid)
+      );
       const snap = await getDocs(q);
       if (!snap.empty) {
-        const rec = snap.docs[0].data();
+        const rawDocs = snap.docs.map((doc) => doc.data());
+        rawDocs.sort((a, b) => {
+          const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+          const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+          return tB - tA;
+        });
+        const rec = rawDocs[0];
         const avgTraining = rec.employeesTrained > 0 ? (rec.trainingHours / rec.employeesTrained) : 0;
         const tScore = Math.min(25, Math.round((avgTraining / 5) * 25));
         const sScore = Math.max(0, 25 - (rec.safetyIncidents || 0) * 5);
         const cScore = Math.min(25, (rec.csrActivities || 0) * 2);
         setSocialScore(Math.min(100, 25 + tScore + sScore + cScore));
+      } else {
+        setSocialScore(0);
       }
     } catch (err) {
       console.error("Error fetching social score:", err);
     }
   };
 
-  const fetchGovernanceScore = async () => {
+  const fetchGovernanceScore = async (userUid) => {
     try {
-      const snap = await getDocs(collection(db, "governanceCompliance"));
+      const q = query(
+        collection(db, "governanceCompliance"),
+        where("userId", "==", userUid)
+      );
+      const snap = await getDocs(q);
       if (!snap.empty) {
         const docs = snap.docs.map((d) => d.data());
         const compliantCount = docs.filter((d) => d.status === "Compliant").length;
         setGovernanceScore(Math.round((compliantCount / docs.length) * 100));
+      } else {
+        setGovernanceScore(0);
       }
     } catch (err) {
       console.error("Error fetching governance score:", err);
@@ -230,23 +266,21 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    let isMounted = true;
-    const loadDashboardData = async () => {
-      try {
-        await Promise.all([
-          fetchLatestData(),
-          fetchChartData(),
-          fetchSocialScore(),
-          fetchGovernanceScore(),
-        ]);
-      } catch (err) {
-        if (isMounted) console.error("Error loading dashboard data:", err);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        fetchLatestData(currentUser.uid);
+        fetchChartData(currentUser.uid);
+        fetchSocialScore(currentUser.uid);
+        fetchGovernanceScore(currentUser.uid);
+      } else {
+        setLatestData(null);
+        setChartData([]);
+        setSocialScore(0);
+        setGovernanceScore(0);
       }
-    };
-    loadDashboardData();
-    return () => {
-      isMounted = false;
-    };
+    });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {

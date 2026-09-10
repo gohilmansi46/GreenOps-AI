@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import toast from "react-hot-toast";
 import { useTheme } from "../context/ThemeContext";
+import { auth } from "../services/authService";
+import { onAuthStateChanged } from "firebase/auth";
 
 import {
   collection,
@@ -9,6 +11,7 @@ import {
   serverTimestamp,
   getDocs,
   query,
+  where,
   orderBy,
   deleteDoc,
   doc,
@@ -202,26 +205,37 @@ const socialScore =
   safetyScore +
   csrScore;
 
-  const fetchRecords = async () => {
-  try {
-    const q = query(
-      collection(db, "socialData"),
-      orderBy("createdAt", "desc")
-    );
+  const fetchRecords = async (userUid) => {
+    const targetUid = userUid || auth.currentUser?.uid;
+    if (!targetUid) {
+      setRecords([]);
+      return;
+    }
+    try {
+      const q = query(
+        collection(db, "socialData"),
+        where("userId", "==", targetUid)
+      );
 
-    const snapshot = await getDocs(q);
+      const snapshot = await getDocs(q);
 
-    const data = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
-    setRecords(data);
-  } catch (error) {
-    console.error("Error fetching social records:", error);
-    toast.error("Failed to load social records.");
-  }
-};
+      data.sort((a, b) => {
+        const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+        const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+        return tB - tA;
+      });
+
+      setRecords(data);
+    } catch (error) {
+      console.error("Error fetching social records:", error);
+      toast.error("Failed to load social records.");
+    }
+  };
 
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -379,6 +393,7 @@ if (hasValidationError) {
         collection(db, "socialData"),
         {
           ...socialData,
+          userId: auth.currentUser?.uid || "",
           createdAt: serverTimestamp(),
         }
       );
@@ -460,29 +475,15 @@ const handleDelete = async () => {
 };
 
 useEffect(() => {
-  let isMounted = true;
-  const loadData = async () => {
-    try {
-      const q = query(
-        collection(db, "socialData"),
-        orderBy("createdAt", "desc")
-      );
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      if (isMounted) {
-        setRecords(data);
-      }
-    } catch (error) {
-      console.error("Error fetching social records:", error);
+  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    if (currentUser) {
+      fetchRecords(currentUser.uid);
+    } else {
+      setRecords([]);
     }
-  };
-  loadData();
-  return () => {
-    isMounted = false;
-  };
+  });
+
+  return () => unsubscribe();
 }, []);
 
   return (

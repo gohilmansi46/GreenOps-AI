@@ -6,6 +6,8 @@ import GovernanceComplianceModal from "../components/GovernanceComplianceModal";
 import { useEffect, useState } from "react";
 import { db } from "../config/firebase";
 import { useTheme } from "../context/ThemeContext";
+import { auth } from "../services/authService";
+import { onAuthStateChanged } from "firebase/auth";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
@@ -26,6 +28,8 @@ import {
   updateDoc,
   doc,
   deleteDoc,
+  query,
+  where,
 } from "firebase/firestore";
 
 function Governance() {
@@ -112,43 +116,64 @@ function Governance() {
   const complianceRowsPerPage = 10;
 
   useEffect(() => {
-    const unsubscribeAudits = onSnapshot(
-      collection(db, "governanceAudits"),
-      (snapshot) => {
-        const auditData = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setAudits(auditData);
-      }
-    );
+    let unsubscribeAudits = () => {};
+    let unsubscribeCompliance = () => {};
+    let unsubscribePolicies = () => {};
+    let unsubscribeRisks = () => {};
 
-    const unsubscribeCompliance = onSnapshot(
-      collection(db, "governanceCompliance"),
-      (snapshot) => {
-        const complianceData = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setComplianceItems(complianceData);
-      }
-    );
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      unsubscribeAudits();
+      unsubscribeCompliance();
+      unsubscribePolicies();
+      unsubscribeRisks();
 
-    const unsubscribePolicies = onSnapshot(
-      collection(db, "governancePolicies"),
-      (snapshot) => {
-        setPolicies(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-      }
-    );
+      if (currentUser) {
+        const uid = currentUser.uid;
+        unsubscribeAudits = onSnapshot(
+          query(collection(db, "governanceAudits"), where("userId", "==", uid)),
+          (snapshot) => {
+            const auditData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            setAudits(auditData);
+          }
+        );
 
-    const unsubscribeRisks = onSnapshot(
-      collection(db, "governanceRisks"),
-      (snapshot) => {
-        setRisks(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+        unsubscribeCompliance = onSnapshot(
+          query(collection(db, "governanceCompliance"), where("userId", "==", uid)),
+          (snapshot) => {
+            const complianceData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            setComplianceItems(complianceData);
+          }
+        );
+
+        unsubscribePolicies = onSnapshot(
+          query(collection(db, "governancePolicies"), where("userId", "==", uid)),
+          (snapshot) => {
+            setPolicies(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+          }
+        );
+
+        unsubscribeRisks = onSnapshot(
+          query(collection(db, "governanceRisks"), where("userId", "==", uid)),
+          (snapshot) => {
+            setRisks(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+          }
+        );
+      } else {
+        setAudits([]);
+        setComplianceItems([]);
+        setPolicies([]);
+        setRisks([]);
       }
-    );
+    });
 
     return () => {
+      unsubscribeAuth();
       unsubscribeAudits();
       unsubscribeCompliance();
       unsubscribePolicies();
@@ -986,7 +1011,10 @@ return (
     } else {
       await addDoc(
         collection(db, "governanceAudits"),
-        data
+        {
+          ...data,
+          userId: auth.currentUser?.uid || "",
+        }
       );
     }
 
@@ -1030,7 +1058,10 @@ return (
 
           await addDoc(
             collection(db, "governanceCompliance"),
-            data
+            {
+              ...data,
+              userId: auth.currentUser?.uid || "",
+            }
           );
 
         }
@@ -2663,6 +2694,7 @@ return (
               } else {
                 await addDoc(collection(db, "governancePolicies"), {
                   ...policyData,
+                  userId: auth.currentUser?.uid || "",
                   createdAt: new Date().toISOString(),
                 });
               }
@@ -2707,6 +2739,7 @@ return (
               } else {
                 await addDoc(collection(db, "governanceRisks"), {
                   ...riskData,
+                  userId: auth.currentUser?.uid || "",
                   createdAt: new Date().toISOString(),
                 });
               }

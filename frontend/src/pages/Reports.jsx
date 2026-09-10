@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 
 import Sidebar from "../components/Sidebar";
 import { useTheme } from "../context/ThemeContext";
+import { auth } from "../services/authService";
+import { onAuthStateChanged } from "firebase/auth";
 
 import {
   collection,
   getDocs,
   query,
+  where,
   orderBy,
   limit,
 } from "firebase/firestore";
@@ -31,26 +34,60 @@ function Reports() {
   const [selectedFramework, setSelectedFramework] = useState("BRSR (SEBI Standard)");
 
   useEffect(() => {
-    const fetchGovernanceData = async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
+        setGovernanceAudits([]);
+        setGovernanceCompliance([]);
+        setGovernancePolicies([]);
+        setGovernanceRisks([]);
+        setGovernanceLoading(false);
+        setLatestSocialRecord(null);
+        setSocialLoading(false);
+        setLatestEnvironmentalRecord(null);
+        setEnvironmentalLoading(false);
+        return;
+      }
       try {
-        const auditSnap = await getDocs(collection(db, "governanceAudits"));
+        const uid = currentUser.uid;
+        const auditSnap = await getDocs(query(collection(db, "governanceAudits"), where("userId", "==", uid)));
         setGovernanceAudits(auditSnap.docs.map((doc) => doc.data()));
 
-        const complianceSnap = await getDocs(collection(db, "governanceCompliance"));
+        const complianceSnap = await getDocs(query(collection(db, "governanceCompliance"), where("userId", "==", uid)));
         setGovernanceCompliance(complianceSnap.docs.map((doc) => doc.data()));
 
-        const policySnap = await getDocs(collection(db, "governancePolicies"));
+        const policySnap = await getDocs(query(collection(db, "governancePolicies"), where("userId", "==", uid)));
         setGovernancePolicies(policySnap.docs.map((doc) => doc.data()));
 
-        const riskSnap = await getDocs(collection(db, "governanceRisks"));
+        const riskSnap = await getDocs(query(collection(db, "governanceRisks"), where("userId", "==", uid)));
         setGovernanceRisks(riskSnap.docs.map((doc) => doc.data()));
+
+        const socialSnap = await getDocs(query(collection(db, "socialData"), where("userId", "==", uid)));
+        const socialDocs = socialSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        socialDocs.sort((a, b) => {
+          const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+          const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+          return tB - tA;
+        });
+        setLatestSocialRecord(socialDocs.length > 0 ? socialDocs[0] : null);
+
+        const envSnap = await getDocs(query(collection(db, "environmentalData"), where("userId", "==", uid)));
+        const envDocs = envSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        envDocs.sort((a, b) => {
+          const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+          const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+          return tB - tA;
+        });
+        setLatestEnvironmentalRecord(envDocs.length > 0 ? envDocs[0] : null);
       } catch (error) {
-        console.error("Error fetching governance data for report:", error);
+        console.error("Error fetching user report data:", error);
       } finally {
         setGovernanceLoading(false);
+        setSocialLoading(false);
+        setEnvironmentalLoading(false);
       }
-    };
-    fetchGovernanceData();
+    });
+
+    return () => unsubscribe();
   }, []);
 
  // PDF FUNCTION
@@ -424,99 +461,7 @@ const handleExportExcel = () => {
 
 
 
-  useEffect(() => {
 
-    const fetchLatestSocialRecord = async () => {
-
-      try {
-
-        const q = query(
-          collection(db, "socialData"),
-          orderBy("createdAt", "desc"),
-          limit(1)
-        );
-
-        const snapshot = await getDocs(q);
-
-
-        if (!snapshot.empty) {
-
-          setLatestSocialRecord({
-            id: snapshot.docs[0].id,
-            ...snapshot.docs[0].data(),
-          });
-
-        } else {
-
-          setLatestSocialRecord(null);
-
-        }
-
-      } catch (error) {
-
-        console.error(
-          "Error fetching social record:",
-          error
-        );
-
-      } finally {
-
-        setSocialLoading(false);
-
-      }
-
-    };
-
-
-    fetchLatestSocialRecord();
-
-  }, []);
-
-
-useEffect(() => {
-
-  const fetchLatestEnvironmentalRecord = async () => {
-
-    try {
-
-      const q = query(
-        collection(db, "environmentalData"),
-        orderBy("createdAt", "desc"),
-        limit(1)
-      );
-
-      const snapshot = await getDocs(q);
-
-      if (!snapshot.empty) {
-
-        setLatestEnvironmentalRecord(
-          snapshot.docs[0].data()
-        );
-
-      } else {
-
-        setLatestEnvironmentalRecord(null);
-
-      }
-
-    } catch (error) {
-
-      console.error(
-        "Error fetching environmental record:",
-        error
-      );
-
-    } finally {
-
-      setEnvironmentalLoading(false);
-
-    }
-
-  };
-
-  fetchLatestEnvironmentalRecord();
-
-}, []);
 
   // ==============================
   // SOCIAL DATA

@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { chatWithESGAssistant } from "../services/geminiService";
 import { Bot, Send, X, Sparkles, User, RefreshCw } from "lucide-react";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { auth } from "../services/authService";
 
 function AIChatDrawer({ isOpen, onClose }) {
   const [messages, setMessages] = useState([
@@ -31,21 +32,44 @@ function AIChatDrawer({ isOpen, onClose }) {
 
     const fetchLivePlatformData = async () => {
       try {
+        const user = auth.currentUser;
+        if (!user) {
+          setLiveContext({
+            esgScore: 0,
+            environmental: { carbon: 0, energy: 0, water: 0, scope: "Scope 1 (Direct)", carbonOffsets: 0, cloudServers: 0 },
+            social: { totalEmployees: 0, malePercentage: 0, femalePercentage: 0, otherPercentage: 0, employeesTrained: 0, averageTrainingHours: "0.00", safetyIncidents: 0, csrActivities: 0 },
+            governance: { score: "0%", policiesCount: 0, risksCount: 0, complianceCount: 0, compliantCount: 0, auditsCount: 0 },
+          });
+          return;
+        }
+
+        const uid = user.uid;
+
         // 1. Environmental Data
-        const envQuery = query(collection(db, "environmentalData"), orderBy("createdAt", "desc"));
-        const envSnap = await getDocs(envQuery);
-        const latestEnv = envSnap.docs.length > 0 ? envSnap.docs[0].data() : null;
+        const envSnap = await getDocs(query(collection(db, "environmentalData"), where("userId", "==", uid)));
+        const envDocs = envSnap.docs.map((d) => d.data());
+        envDocs.sort((a, b) => {
+          const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+          const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+          return tB - tA;
+        });
+        const latestEnv = envDocs.length > 0 ? envDocs[0] : null;
 
         // 2. Social Data
-        const socQuery = query(collection(db, "socialData"), orderBy("createdAt", "desc"));
-        const socSnap = await getDocs(socQuery);
-        const latestSoc = socSnap.docs.length > 0 ? socSnap.docs[0].data() : null;
+        const socSnap = await getDocs(query(collection(db, "socialData"), where("userId", "==", uid)));
+        const socDocs = socSnap.docs.map((d) => d.data());
+        socDocs.sort((a, b) => {
+          const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+          const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+          return tB - tA;
+        });
+        const latestSoc = socDocs.length > 0 ? socDocs[0] : null;
 
         // 3. Governance Data
-        const polSnap = await getDocs(collection(db, "governancePolicies"));
-        const riskSnap = await getDocs(collection(db, "governanceRisks"));
-        const compSnap = await getDocs(collection(db, "governanceCompliance"));
-        const auditSnap = await getDocs(collection(db, "governanceAudits"));
+        const polSnap = await getDocs(query(collection(db, "governancePolicies"), where("userId", "==", uid)));
+        const riskSnap = await getDocs(query(collection(db, "governanceRisks"), where("userId", "==", uid)));
+        const compSnap = await getDocs(query(collection(db, "governanceCompliance"), where("userId", "==", uid)));
+        const auditSnap = await getDocs(query(collection(db, "governanceAudits"), where("userId", "==", uid)));
 
         const policiesList = polSnap.docs.map((doc) => doc.data());
         const risksList = riskSnap.docs.map((doc) => doc.data());
@@ -53,11 +77,16 @@ function AIChatDrawer({ isOpen, onClose }) {
         const auditsList = auditSnap.docs.map((doc) => doc.data());
 
         const compliantCount = compList.filter((c) => c.status === "Compliant").length;
-        const govScoreVal = compList.length > 0 ? Math.round((compliantCount / compList.length) * 100) : 86;
+        const govScoreVal = compList.length > 0 ? Math.round((compliantCount / compList.length) * 100) : 0;
 
-        const envScoreVal = latestEnv?.carbon ? Math.max(0, 100 - Math.round(latestEnv.carbon / 10)) : 85;
-        const socScoreVal = latestSoc?.totalEmployees ? Math.min(100, Math.round(((latestSoc.trainingHours || 0) / (latestSoc.totalEmployees || 1)) * 20)) : 80;
-        const overallESG = Math.round((envScoreVal + socScoreVal + govScoreVal) / 3);
+        const envScoreVal = latestEnv ? Math.max(0, 100 - Math.round((latestEnv.carbon || 0) / 10)) : 0;
+        const socScoreVal = latestSoc?.totalEmployees ? Math.min(100, Math.round(((latestSoc.trainingHours || 0) / (latestSoc.totalEmployees || 1)) * 20)) : 0;
+        
+        const activeScores = [];
+        if (latestEnv) activeScores.push(envScoreVal);
+        if (latestSoc) activeScores.push(socScoreVal);
+        if (compList.length > 0) activeScores.push(govScoreVal);
+        const overallESG = activeScores.length > 0 ? Math.round(activeScores.reduce((a, b) => a + b, 0) / activeScores.length) : 0;
 
         const totalEmp = latestSoc?.totalEmployees || 0;
         const malePct = totalEmp > 0 ? Math.round(((latestSoc.maleEmployees || 0) / totalEmp) * 100) : 0;
@@ -68,30 +97,30 @@ function AIChatDrawer({ isOpen, onClose }) {
         setLiveContext({
           esgScore: overallESG,
           environmental: {
-            carbon: latestEnv?.carbon ?? 320,
-            energy: latestEnv?.energy ?? 12500,
-            water: latestEnv?.water ?? 42000,
+            carbon: latestEnv?.carbon ?? 0,
+            energy: latestEnv?.energy ?? 0,
+            water: latestEnv?.water ?? 0,
             scope: latestEnv?.scope || "Scope 1 (Direct)",
-            carbonOffsets: latestEnv?.carbonOffsets ?? 50,
-            cloudServers: latestEnv?.cloudServers ?? 12,
+            carbonOffsets: latestEnv?.carbonOffsets ?? 0,
+            cloudServers: latestEnv?.cloudServers ?? 0,
           },
           social: {
-            totalEmployees: totalEmp || 500,
-            malePercentage: malePct || 40,
-            femalePercentage: femalePct || 55,
-            otherPercentage: otherPct || 5,
-            employeesTrained: latestSoc?.employeesTrained ?? 400,
+            totalEmployees: totalEmp,
+            malePercentage: malePct,
+            femalePercentage: femalePct,
+            otherPercentage: otherPct,
+            employeesTrained: latestSoc?.employeesTrained ?? 0,
             averageTrainingHours: avgTraining,
             safetyIncidents: latestSoc?.safetyIncidents ?? 0,
-            csrActivities: latestSoc?.csrActivities ?? 10,
+            csrActivities: latestSoc?.csrActivities ?? 0,
           },
           governance: {
             score: `${govScoreVal}%`,
-            policiesCount: policiesList.length || 3,
-            risksCount: risksList.length || 1,
-            complianceCount: compList.length || 0,
+            policiesCount: policiesList.length,
+            risksCount: risksList.length,
+            complianceCount: compList.length,
             compliantCount,
-            auditsCount: auditsList.length || 4,
+            auditsCount: auditsList.length,
           },
         });
       } catch (err) {

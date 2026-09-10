@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
+import { auth } from "../services/authService";
+import { onAuthStateChanged } from "firebase/auth";
 import {
   collection,
   addDoc,
   getDocs,
   query,
+  where,
   orderBy,
   deleteDoc,
   doc,
@@ -42,17 +45,27 @@ function Environmental() {
   const [editId, setEditId] = useState(null);
   const [search, setSearch] = useState("");
 
-  const fetchRecords = async () => {
+  const fetchRecords = async (userUid) => {
+    const targetUid = userUid || auth.currentUser?.uid;
+    if (!targetUid) {
+      setRecords([]);
+      return;
+    }
     try {
       const q = query(
         collection(db, "environmentalData"),
-        orderBy("createdAt", "desc")
+        where("userId", "==", targetUid)
       );
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
+      data.sort((a, b) => {
+        const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+        const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+        return tB - tA;
+      });
       setRecords(data);
     } catch (error) {
       console.error("Error fetching records:", error);
@@ -60,29 +73,15 @@ function Environmental() {
   };
 
   useEffect(() => {
-    let isMounted = true;
-    const loadData = async () => {
-      try {
-        const q = query(
-          collection(db, "environmentalData"),
-          orderBy("createdAt", "desc")
-        );
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        if (isMounted) {
-          setRecords(data);
-        }
-      } catch (error) {
-        console.error("Error fetching records:", error);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        fetchRecords(currentUser.uid);
+      } else {
+        setRecords([]);
       }
-    };
-    loadData();
-    return () => {
-      isMounted = false;
-    };
+    });
+
+    return () => unsubscribe();
   }, []);
   const totalCarbon = records.reduce(
   (sum, item) => sum + Number(item.carbon || 0),
@@ -151,6 +150,7 @@ const [recordToDelete, setRecordToDelete] = useState(null);
         });
       } else {
         await addDoc(collection(db, "environmentalData"), {
+          userId: auth.currentUser?.uid || "",
           carbon: Number(carbon),
           energy: Number(energy),
           water: Number(water),

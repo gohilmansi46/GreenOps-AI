@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { auth } from "../services/authService";
 import {
   Leaf,
   ShieldCheck,
@@ -42,30 +43,41 @@ function PublicESGPortal() {
   useEffect(() => {
     const fetchPublicData = async () => {
       try {
-        // Environmental Records
-        const envSnap = await getDocs(
-          query(collection(db, "environmentalData"), orderBy("createdAt", "desc"))
-        );
+        const currentUser = auth.currentUser;
+        let envSnap, socialSnap, polSnap, riskSnap, compSnap;
+        if (currentUser) {
+          const uid = currentUser.uid;
+          envSnap = await getDocs(query(collection(db, "environmentalData"), where("userId", "==", uid)));
+          socialSnap = await getDocs(query(collection(db, "socialData"), where("userId", "==", uid)));
+          polSnap = await getDocs(query(collection(db, "governancePolicies"), where("userId", "==", uid)));
+          riskSnap = await getDocs(query(collection(db, "governanceRisks"), where("userId", "==", uid)));
+          compSnap = await getDocs(query(collection(db, "governanceCompliance"), where("userId", "==", uid)));
+        } else {
+          envSnap = await getDocs(collection(db, "environmentalData"));
+          socialSnap = await getDocs(collection(db, "socialData"));
+          polSnap = await getDocs(collection(db, "governancePolicies"));
+          riskSnap = await getDocs(collection(db, "governanceRisks"));
+          compSnap = await getDocs(collection(db, "governanceCompliance"));
+        }
+
         const envData = envSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        envData.sort((a, b) => {
+          const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+          const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+          return tB - tA;
+        });
         setEnvRecords(envData);
 
-        // Social Records
-        const socialSnap = await getDocs(
-          query(collection(db, "socialData"), orderBy("createdAt", "desc"))
-        );
         const socialData = socialSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        socialData.sort((a, b) => {
+          const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+          const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+          return tB - tA;
+        });
         setSocialRecords(socialData);
 
-        // Governance Policies
-        const polSnap = await getDocs(collection(db, "governancePolicies"));
         setPolicies(polSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-
-        // Governance Risks
-        const riskSnap = await getDocs(collection(db, "governanceRisks"));
         setRisks(riskSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-
-        // Governance Compliance
-        const compSnap = await getDocs(collection(db, "governanceCompliance"));
         setComplianceItems(compSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
       } catch (err) {
         console.error("Error fetching public portal data:", err);
@@ -84,20 +96,20 @@ function PublicESGPortal() {
   const totalEnergy = envRecords.reduce((acc, curr) => acc + Number(curr.energy || 0), 0);
   const totalWater = envRecords.reduce((acc, curr) => acc + Number(curr.water || 0), 0);
 
-  const totalEmployees = latestSocial?.totalEmployees || 250;
+  const totalEmployees = latestSocial?.totalEmployees || 0;
   const femalePercentage = totalEmployees > 0 && latestSocial?.femaleEmployees
     ? Math.round((Number(latestSocial.femaleEmployees) / totalEmployees) * 100)
-    : 42;
+    : 0;
   const malePercentage = totalEmployees > 0 && latestSocial?.maleEmployees
     ? Math.round((Number(latestSocial.maleEmployees) / totalEmployees) * 100)
-    : 54;
-  const otherPercentage = Math.max(0, 100 - malePercentage - femalePercentage);
+    : 0;
+  const otherPercentage = totalEmployees > 0 ? Math.max(0, 100 - malePercentage - femalePercentage) : 0;
 
   const totalCompliance = complianceItems.length;
   const compliantCount = complianceItems.filter((i) => i.status === "Compliant").length;
   const complianceRate = totalCompliance > 0
     ? Math.round((compliantCount / totalCompliance) * 100)
-    : 92;
+    : 0;
 
   const activePoliciesCount = policies.filter((p) => p.status === "Active" || !p.status).length;
   const openRisksCount = risks.filter((r) => r.status === "Open" || !r.status).length;
@@ -105,16 +117,23 @@ function PublicESGPortal() {
   // Composite Public ESG Score
   const envScore = latestEnv
     ? Math.max(0, 100 - (Number(latestEnv.carbon || 0) > 400 ? 25 : Number(latestEnv.carbon || 0) > 200 ? 10 : 0))
-    : 88;
-  const socialScore = latestSocial ? 90 : 85;
+    : 0;
+  const socialScore = latestSocial ? 90 : 0;
   const govScore = complianceRate;
-  const compositeESGScore = Math.round((envScore + socialScore + govScore) / 3);
+  
+  const activeScores = [];
+  if (latestEnv) activeScores.push(envScore);
+  if (latestSocial) activeScores.push(socialScore);
+  if (complianceItems.length > 0) activeScores.push(govScore);
+  const compositeESGScore = activeScores.length > 0 ? Math.round(activeScores.reduce((a, b) => a + b, 0) / activeScores.length) : 0;
 
   const esgRatingBadge = compositeESGScore >= 90
     ? { rating: "AAA", label: "Global Sustainability Leader", color: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10" }
     : compositeESGScore >= 80
     ? { rating: "AA+", label: "Advanced ESG Maturity", color: "text-green-400 border-green-500/40 bg-green-500/10" }
-    : { rating: "A", label: "Verified Standard Compliant", color: "text-blue-400 border-blue-500/40 bg-blue-500/10" };
+    : compositeESGScore > 0
+    ? { rating: "A", label: "Verified Standard Compliant", color: "text-blue-400 border-blue-500/40 bg-blue-500/10" }
+    : { rating: "N/A", label: "Baseline Setup Required", color: "text-gray-400 border-gray-500/40 bg-gray-500/10" };
 
   // Chart Data Transforms
   const envChartData = envRecords.slice(0, 6).reverse().map((r, i) => ({
