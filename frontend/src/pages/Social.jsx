@@ -1154,31 +1154,36 @@ useEffect(() => {
       {/*              SAFETY + CSR ANALYTICS                  */}
       {/* ===================================================== */}
 
+      {/* ===================================================== */}
+      {/*              SAFETY + CSR ANALYTICS                  */}
+      {/* ===================================================== */}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
 
         {/* ===================================================== */}
         {/*                 SAFETY INCIDENTS TREND                */}
         {/* ===================================================== */}
 
-        <div className={`rounded-2xl border shadow-sm p-6 ${darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}>
+        <div className={`rounded-3xl border p-7 shadow-md hover:shadow-xl transition-all duration-300 ${darkMode ? "bg-gradient-to-br from-gray-800 to-gray-800/90 border-gray-700/80 text-white" : "bg-gradient-to-br from-white to-gray-50/60 border-gray-200/90 text-gray-900"}`}>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping inline-block" />
                 Safety Incidents Trend
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Reported workplace safety incidents over recorded periods.
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30">
+            <div className="flex items-center gap-2.5">
+              <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30 shadow-xs">
                 {safetyChartData.reduce((acc, curr) => acc + (curr.incidents || 0), 0)} Total
               </span>
-              <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/60 flex items-center justify-center">
+              <div className="w-11 h-11 rounded-2xl bg-red-500/10 dark:bg-red-950/60 border border-red-500/20 flex items-center justify-center shadow-xs">
                 <ShieldAlert
-                  size={20}
-                  className="text-red-600 dark:text-red-300"
+                  size={22}
+                  className="text-red-600 dark:text-red-400"
                 />
               </div>
             </div>
@@ -1186,25 +1191,24 @@ useEffect(() => {
 
           <div className="w-full h-72">
             {safetyChartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
-                No safety data available yet.
+              <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm font-medium">
+                No safety incident data recorded yet.
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
+                <AreaChart
                   data={safetyChartData}
-                  barSize={36}
                   margin={{
                     top: 10,
-                    right: 10,
+                    right: 20,
                     left: -10,
                     bottom: 10,
                   }}
                 >
                   <defs>
-                    <linearGradient id="safetyRedGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f87171" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#dc2626" stopOpacity={0.85} />
+                    <linearGradient id="safetyRedAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.45} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
 
@@ -1212,33 +1216,39 @@ useEffect(() => {
 
                   <XAxis
                     dataKey="month"
-                    stroke={darkMode ? "#d1d5db" : "#4b5563"}
+                    stroke={darkMode ? "#9ca3af" : "#4b5563"}
                     tick={{ fill: darkMode ? "#d1d5db" : "#4b5563", fontSize: 12, fontWeight: 600 }}
                   />
 
                   <YAxis
                     allowDecimals={false}
-                    stroke={darkMode ? "#d1d5db" : "#4b5563"}
+                    stroke={darkMode ? "#9ca3af" : "#4b5563"}
                     tick={{ fill: darkMode ? "#d1d5db" : "#4b5563", fontSize: 12, fontWeight: 600 }}
                   />
 
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: darkMode ? "#111827" : "#ffffff",
+                      backgroundColor: darkMode ? "#1f2937" : "#ffffff",
                       borderColor: darkMode ? "#ef4444" : "#dc2626",
-                      borderRadius: "0.75rem",
+                      borderRadius: "1rem",
                       color: darkMode ? "#ffffff" : "#111827",
-                      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+                      boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3)",
                       fontWeight: 600,
+                      padding: "12px 16px",
                     }}
                   />
 
-                  <Bar
+                  <Area
+                    type="monotone"
                     dataKey="incidents"
-                    fill="url(#safetyRedGrad)"
-                    radius={[10, 10, 3, 3]}
+                    stroke="#ef4444"
+                    strokeWidth={3.5}
+                    fillOpacity={1}
+                    fill="url(#safetyRedAreaGrad)"
+                    dot={{ r: 5, fill: "#ef4444", stroke: darkMode ? "#1f2937" : "#ffffff", strokeWidth: 2 }}
+                    activeDot={{ r: 8, fill: "#f87171", stroke: "#ffffff", strokeWidth: 2 }}
                   />
-                </BarChart>
+                </AreaChart>
               </ResponsiveContainer>
             )}
           </div>
@@ -1248,25 +1258,26 @@ useEffect(() => {
         {/*                  CSR ACTIVITY TREND                  */}
         {/* ===================================================== */}
 
-        <div className={`rounded-2xl border shadow-sm p-6 ${darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}>
+        <div className={`rounded-3xl border p-7 shadow-md hover:shadow-xl transition-all duration-300 ${darkMode ? "bg-gradient-to-br from-gray-800 to-gray-800/90 border-gray-700/80 text-white" : "bg-gradient-to-br from-white to-gray-50/60 border-gray-200/90 text-gray-900"}`}>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
                 CSR Activity Trend
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Community and social responsibility activities over recorded periods.
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Community & social responsibility initiatives over time.
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+            <div className="flex items-center gap-2.5">
+              <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-xs">
                 {csrChartData.reduce((acc, curr) => acc + (curr.activities || 0), 0)} Total
               </span>
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center">
+              <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 dark:bg-emerald-950/60 border border-emerald-500/20 flex items-center justify-center shadow-xs">
                 <HeartHandshake
-                  size={20}
-                  className="text-emerald-600 dark:text-emerald-300"
+                  size={22}
+                  className="text-emerald-600 dark:text-emerald-400"
                 />
               </div>
             </div>
@@ -1274,25 +1285,24 @@ useEffect(() => {
 
           <div className="w-full h-72">
             {csrChartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
-                No CSR data available yet.
+              <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm font-medium">
+                No CSR activity data recorded yet.
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
+                <AreaChart
                   data={csrChartData}
-                  barSize={36}
                   margin={{
                     top: 10,
-                    right: 10,
+                    right: 20,
                     left: -10,
                     bottom: 10,
                   }}
                 >
                   <defs>
-                    <linearGradient id="csrGreenGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#34d399" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#059669" stopOpacity={0.85} />
+                    <linearGradient id="csrGreenAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.45} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
 
@@ -1300,33 +1310,39 @@ useEffect(() => {
 
                   <XAxis
                     dataKey="month"
-                    stroke={darkMode ? "#d1d5db" : "#4b5563"}
+                    stroke={darkMode ? "#9ca3af" : "#4b5563"}
                     tick={{ fill: darkMode ? "#d1d5db" : "#4b5563", fontSize: 12, fontWeight: 600 }}
                   />
 
                   <YAxis
                     allowDecimals={false}
-                    stroke={darkMode ? "#d1d5db" : "#4b5563"}
+                    stroke={darkMode ? "#9ca3af" : "#4b5563"}
                     tick={{ fill: darkMode ? "#d1d5db" : "#4b5563", fontSize: 12, fontWeight: 600 }}
                   />
 
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: darkMode ? "#111827" : "#ffffff",
+                      backgroundColor: darkMode ? "#1f2937" : "#ffffff",
                       borderColor: darkMode ? "#10b981" : "#059669",
-                      borderRadius: "0.75rem",
+                      borderRadius: "1rem",
                       color: darkMode ? "#ffffff" : "#111827",
-                      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+                      boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3)",
                       fontWeight: 600,
+                      padding: "12px 16px",
                     }}
                   />
 
-                  <Bar
+                  <Area
+                    type="monotone"
                     dataKey="activities"
-                    fill="url(#csrGreenGrad)"
-                    radius={[10, 10, 3, 3]}
+                    stroke="#10b981"
+                    strokeWidth={3.5}
+                    fillOpacity={1}
+                    fill="url(#csrGreenAreaGrad)"
+                    dot={{ r: 5, fill: "#10b981", stroke: darkMode ? "#1f2937" : "#ffffff", strokeWidth: 2 }}
+                    activeDot={{ r: 8, fill: "#34d399", stroke: "#ffffff", strokeWidth: 2 }}
                   />
-                </BarChart>
+                </AreaChart>
               </ResponsiveContainer>
             )}
           </div>
