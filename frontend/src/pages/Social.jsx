@@ -12,7 +12,6 @@ import {
   getDocs,
   query,
   where,
-  orderBy,
   deleteDoc,
   doc,
   updateDoc,
@@ -32,8 +31,6 @@ import {
 import {
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,

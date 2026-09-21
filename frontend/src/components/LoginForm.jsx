@@ -1,27 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { loginUser, resetPassword, formatAuthError } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import { FaLeaf, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
 import toast from "react-hot-toast";
 
 function LoginForm() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => localStorage.getItem("rememberedEmail") || "");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("rememberedEmail"));
   const [loading, setLoading] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const savedEmail = localStorage.getItem("rememberedEmail");
-    if (savedEmail) {
-      setEmail(savedEmail);
-      setRememberMe(true);
-    }
-  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
