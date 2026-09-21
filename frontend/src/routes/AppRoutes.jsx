@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useState } from "react";
 import { Bot } from "lucide-react";
 import AIChatDrawer from "../components/AIChatDrawer";
@@ -99,6 +99,9 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        {/* Fallback route for unknown paths */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
 
       </Routes>
       <GlobalAIChat />
