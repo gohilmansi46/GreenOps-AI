@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { loginUser, resetPassword, formatAuthError } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import { FaLeaf, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
@@ -15,6 +15,14 @@ function LoginForm() {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -26,7 +34,7 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      await loginUser(email, password);
+      await loginUser(email, password, rememberMe);
       toast.success("Login Successful!");
       navigate("/dashboard");
     } catch (error) {

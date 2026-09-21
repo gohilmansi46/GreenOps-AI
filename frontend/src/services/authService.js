@@ -6,6 +6,9 @@ import {
   updatePassword,
   updateProfile,
   signOut,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 
 import { app } from "../config/firebase";
@@ -25,9 +28,19 @@ export const registerUser = async (email, password, displayName = "") => {
   return userCredential;
 };
 
-// Login User
-export const loginUser = async (email, password) => {
-  return await signInWithEmailAndPassword(auth, email, password);
+// Login User with option for Remember Me persistence
+export const loginUser = async (email, password, rememberMe = false) => {
+  const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+  await setPersistence(auth, persistenceType);
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+  if (rememberMe) {
+    localStorage.setItem("rememberedEmail", email);
+  } else {
+    localStorage.removeItem("rememberedEmail");
+  }
+
+  return userCredential;
 };
 
 // Send Password Reset Email
